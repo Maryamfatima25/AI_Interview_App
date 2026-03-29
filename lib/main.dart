@@ -1,3 +1,4 @@
+import 'package:ai_interview_app/screens/applicants/applicant_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'screens/auth/login_screen.dart';
 
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginScreen(),
+      home: ApplicantDashboardScreen(),
     );
   }
 }
