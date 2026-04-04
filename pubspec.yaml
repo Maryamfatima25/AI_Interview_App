@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  file_picker: ^8.0.0       # lets user pick a file from device
+  syncfusion_flutter_pdf: ^24.1.41  # extracts text from PDF locally
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

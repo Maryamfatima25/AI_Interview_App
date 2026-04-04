@@ -65,7 +65,7 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
             child: Row(
               children: [
                 Text('${jobs.length} positions found',
-                    style: const TextStyle(color: Color(0xFF7986CB), fontSize: 13)),
+                    style: const TextStyle(color: Color(0xFF808CCC), fontSize: 13)),
               ],
             ),
           ),
