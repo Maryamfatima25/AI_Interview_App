@@ -29,11 +29,7 @@ class InterviewResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final score = currentApplicant.interviewScore;
-    final resumeScore = currentApplicant.resumeMatchScore;
     final color = _scoreColor(score);
-
-    // Composite score = 60% interview + 40% resume match
-    final composite = (score * 0.6) + ((resumeScore / 10) * 0.4);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4FF),
@@ -73,7 +69,7 @@ class InterviewResultScreen extends StatelessWidget {
                   style: const TextStyle(fontSize: 14, color: Color(0xFF546E7A), height: 1.5)),
               const SizedBox(height: 32),
 
-              // Score breakdown
+              // Score card
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -84,25 +80,11 @@ class InterviewResultScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Score Breakdown',
+                    const Text('Interview Score',
                         style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
                             color: Color(0xFF1A237E))),
                     const SizedBox(height: 18),
                     _scoreRow('Interview score', score, 10, const Color(0xFF3949AB)),
-                    const SizedBox(height: 14),
-                    _scoreRow('Resume match', resumeScore, 100, const Color(0xFF00897B)),
-                    const Divider(height: 28),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Composite AI score',
-                            style: TextStyle(fontWeight: FontWeight.w600,
-                                color: Color(0xFF37474F), fontSize: 14)),
-                        Text(composite.toStringAsFixed(1),
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold, color: color)),
-                      ],
-                    ),
                   ],
                 ),
               ),
