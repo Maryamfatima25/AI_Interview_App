@@ -1,5 +1,6 @@
 // lib/data/dummy_jobs.dart
 
+// Predefined dummy jobs (for initial UI demo)
 final List<Map<String, dynamic>> dummyJobs = [
   {
     "title": "Frontend Developer",
@@ -22,11 +23,9 @@ final List<Map<String, dynamic>> dummyJobs = [
     "description": "Create cross-platform mobile applications",
     "positions": 1,
   },
-  {
-    "title": "Full Stack Developer",
-    "skills": ["React", "NodeJS", "MongoDB"],
-    "experience": "2-4 years",
-    "description": "Work on both frontend and backend",
-    "positions": 1,
-  },
+];
+
+// ✅ Main job list (used in app)
+List<Map<String, dynamic>> jobsList = [
+  ...dummyJobs
 ];

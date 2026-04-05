@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/dummy_jobs.dart';
 
 class CreateJobScreen extends StatefulWidget {
   const CreateJobScreen({super.key});
@@ -13,110 +14,240 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   final TextEditingController expController = TextEditingController();
   final TextEditingController descController = TextEditingController();
   final TextEditingController positionsController = TextEditingController();
+  bool _loading = false;
+
+  void _createJob() async {
+    if (titleController.text.isEmpty || skillsController.text.isEmpty) {
+      _showSnack('Please fill in all required fields', isError: true);
+      return;
+    }
+
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(milliseconds: 800));
+    setState(() => _loading = false);
+
+    final skillsList = skillsController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    final job = {
+      'title': titleController.text.trim(),
+      'skills': skillsList,
+      'experience': expController.text.trim(),
+      'description': descController.text.trim(),
+      'positions': positionsController.text.trim(),
+    };
+
+    jobsList.add(job);
+    _showSnack('Job created successfully!');
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) Navigator.pop(context, job);
+  }
+
+  void _showSnack(String msg, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor:
+      isError ? const Color(0xFFE53935) : const Color(0xFF43A047),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF0F4FF),
       appBar: AppBar(
-        title: const Text("Create Job"),
+        title: const Text('Create Job',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A237E))),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Color(0xFF3949AB)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // Job Title
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(
-                labelText: "Job Title",
-                border: OutlineInputBorder(),
+            // Header banner
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3949AB),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                      color: const Color(0xFF3949AB).withOpacity(0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6))
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.add_business_rounded,
+                        color: Colors.white, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('New Job Posting',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
+                      Text('Fill in the details below',
+                          style:
+                          TextStyle(color: Color(0xFFB3BCF5), fontSize: 12)),
+                    ],
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 28),
 
-            const SizedBox(height: 15),
+            // Section: Basic Info
+            _sectionTitle('Basic Information'),
+            const SizedBox(height: 14),
 
-            // Skills
-            TextField(
-              controller: skillsController,
-              decoration: const InputDecoration(
-                labelText: "Required Skills (comma separated)",
-                border: OutlineInputBorder(),
+            _label('Job Title *'),
+            const SizedBox(height: 8),
+            _field(titleController, 'e.g. Flutter Developer',
+                Icons.work_outline),
+            const SizedBox(height: 16),
+
+            _label('Number of Positions *'),
+            const SizedBox(height: 8),
+            _field(positionsController, 'e.g. 3', Icons.people_outline,
+                isNumber: true),
+            const SizedBox(height: 16),
+
+            _label('Experience Required'),
+            const SizedBox(height: 8),
+            _field(expController, 'e.g. 2-3 years', Icons.schedule_rounded),
+            const SizedBox(height: 28),
+
+            // Section: Details
+            _sectionTitle('Job Details'),
+            const SizedBox(height: 14),
+
+            _label('Required Skills *'),
+            const SizedBox(height: 8),
+            _field(skillsController, 'e.g. Flutter, Dart, Firebase',
+                Icons.psychology_outlined),
+            const SizedBox(height: 6),
+            const Padding(
+              padding: EdgeInsets.only(left: 4),
+              child: Text('Separate skills with commas',
+                  style:
+                  TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+            ),
+            const SizedBox(height: 16),
+
+            _label('Job Description'),
+            const SizedBox(height: 8),
+            _field(descController,
+                'Describe the role, responsibilities and requirements...',
+                Icons.description_outlined,
+                maxLines: 4),
+            const SizedBox(height: 36),
+
+            // Create button
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3949AB),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                onPressed: _loading ? null : _createJob,
+                child: _loading
+                    ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2))
+                    : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_rounded,
+                        color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text('Create Job Posting',
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
+                  ],
+                ),
               ),
             ),
-
-            const SizedBox(height: 15),
-
-            // Experience
-            TextField(
-              controller: expController,
-              decoration: const InputDecoration(
-                labelText: "Experience (e.g. 1 year)",
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            // Description
-            TextField(
-              controller: descController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: "Job Description",
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            // Positions
-            TextField(
-              controller: positionsController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Number of Positions",
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            // Submit Button
-            ElevatedButton(
-              onPressed: () {
-                if (titleController.text.isEmpty ||
-                    skillsController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Fill required fields")),
-                  );
-                  return;
-                }
-
-                // 🔹 Convert skills string → list
-                List<String> skillsList = skillsController.text
-                    .split(',')
-                    .map((e) => e.trim())
-                    .toList();
-
-                // 🔹 Create job object (Map for now)
-                Map<String, dynamic> job = {
-                  "title": titleController.text,
-                  "skills": skillsList,
-                  "experience": expController.text,
-                  "description": descController.text,
-                  "positions": positionsController.text,
-                };
-
-                // 🔹 Send data back
-                Navigator.pop(context, job);
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text("Create Job"),
-            ),
+            const SizedBox(height: 20),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String t) => Text(t,
+      style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF1A237E)));
+
+  Widget _label(String t) => Text(t,
+      style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF546E7A)));
+
+  Widget _field(
+      TextEditingController controller,
+      String hint,
+      IconData icon, {
+        int maxLines = 1,
+        bool isNumber = false,
+      }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF3949AB).withOpacity(0.07),
+              blurRadius: 10,
+              offset: const Offset(0, 4))
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        style: const TextStyle(fontSize: 14, color: Color(0xFF1A237E)),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle:
+          const TextStyle(color: Color(0xFFB0BEC5), fontSize: 13),
+          prefixIcon: Padding(
+            padding: EdgeInsets.only(bottom: maxLines > 1 ? 50 : 0),
+            child: Icon(icon, color: const Color(0xFF7986CB), size: 18),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+              vertical: 16, horizontal: 16),
         ),
       ),
     );

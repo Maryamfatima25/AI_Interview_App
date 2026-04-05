@@ -8,80 +8,317 @@ class ResultScreenWithScores extends StatelessWidget {
   const ResultScreenWithScores(
       {super.key, required this.job, required this.interviewScores});
 
+  Color _rankColor(int index) {
+    if (index == 0) return const Color(0xFFEF6C00);
+    if (index == 1) return const Color(0xFF546E7A);
+    if (index == 2) return const Color(0xFF6D4C41);
+    return const Color(0xFF3949AB);
+  }
+
+  IconData _rankIcon(int index) {
+    if (index == 0) return Icons.emoji_events_rounded;
+    if (index == 1) return Icons.military_tech_rounded;
+    if (index == 2) return Icons.workspace_premium_rounded;
+    return Icons.person_outline;
+  }
+
+  Color _scoreColor(double score) {
+    if (score >= 8) return const Color(0xFF2E7D32);
+    if (score >= 6) return const Color(0xFF1565C0);
+    if (score >= 4) return const Color(0xFFE65100);
+    return const Color(0xFFC62828);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Prepare candidates with final score
+    final jobSkills = (job['skills'] as List).cast<String>();
+
     List<Map<String, dynamic>> candidates = dummyCandidates
-        .where((c) => interviewScores.keys.contains(c['name']))
+        .where((c) => interviewScores.containsKey(c['name']))
         .map((c) {
-      double interviewScore = interviewScores[c['name']]!;
-      double resumeScore = c['skills']
-          .where((skill) => job['skills'].contains(skill))
-          .length /
-          job['skills'].length *
-          100;
-      double finalScore = (resumeScore * 0.4 / 10) + (interviewScore * 0.6);
-      return {...c, 'resumeScore': resumeScore, 'interviewScore': interviewScore, 'finalScore': finalScore};
+      final interviewScore = interviewScores[c['name']]!;
+      final candidateSkills = (c['skills'] as List).cast<String>();
+      final matched = candidateSkills
+          .where((s) => jobSkills
+          .map((r) => r.toLowerCase())
+          .contains(s.toLowerCase()))
+          .length;
+      final resumeScore = jobSkills.isEmpty
+          ? 0.0
+          : (matched / jobSkills.length) * 100;
+      final finalScore =
+          (resumeScore * 0.4 / 10) + (interviewScore * 0.6);
+      return {
+        ...c,
+        'resumeScore': resumeScore,
+        'interviewScore': interviewScore,
+        'finalScore': finalScore,
+      };
     }).toList();
 
     candidates.sort((a, b) => (b['finalScore'] as double)
         .compareTo(a['finalScore'] as double));
 
     return Scaffold(
-      appBar: AppBar(title: Text("Results: ${job['title']}"), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView.builder(
-          itemCount: candidates.length,
-          itemBuilder: (context, index) {
-            final candidate = candidates[index];
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
+      backgroundColor: const Color(0xFFF0F4FF),
+      body: CustomScrollView(
+        slivers: [
+          // Indigo SliverAppBar
+          SliverAppBar(
+            expandedHeight: 160,
+            pinned: true,
+            backgroundColor: const Color(0xFF3949AB),
+            iconTheme: const IconThemeData(color: Colors.white),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                color: const Color(0xFF3949AB),
+                padding: const EdgeInsets.only(
+                    left: 24, bottom: 24, right: 24, top: 80),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Candidate Name + Final Score
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("${index + 1}. ${candidate['name']}",
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        Text("Score: ${candidate['finalScore'].toStringAsFixed(1)}",
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
-                      ],
-                    ),
+                    const Icon(Icons.leaderboard_rounded,
+                        color: Colors.white70, size: 26),
                     const SizedBox(height: 8),
-                    Text(
-                        "Resume Match: ${candidate['resumeScore'].toStringAsFixed(0)}%"),
-                    LinearProgressIndicator(
-                      value: candidate['resumeScore'] / 100,
-                      color: Colors.blue,
-                      backgroundColor: Colors.grey[300],
-                      minHeight: 8,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                        "Interview Score: ${candidate['interviewScore'].toStringAsFixed(1)} / 10"),
-                    LinearProgressIndicator(
-                      value: candidate['interviewScore'] / 10,
-                      color: Colors.green,
-                      backgroundColor: Colors.grey[300],
-                      minHeight: 8,
-                    ),
+                    const Text('Final Results',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold)),
+                    Text(job['title'] as String,
+                        style: const TextStyle(
+                            color: Color(0xFFB3BCF5), fontSize: 13)),
                   ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          ),
+
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: candidates.isEmpty
+                ? const SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 60),
+                  child: Text('No results to display',
+                      style: TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF9E9E9E))),
+                ),
+              ),
+            )
+                : SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                  final candidate = candidates[index];
+                  final finalScore =
+                  (candidate['finalScore'] as double);
+                  final resumeScore =
+                  (candidate['resumeScore'] as double);
+                  final interviewScore =
+                  (candidate['interviewScore'] as double);
+                  final rankColor = _rankColor(index);
+                  final scoreColor = _scoreColor(finalScore);
+                  final initials =
+                  (candidate['name'] as String)
+                      .split(' ')
+                      .map((e) =>
+                  e.isNotEmpty ? e[0] : '')
+                      .take(2)
+                      .join()
+                      .toUpperCase();
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: index == 0
+                          ? Border.all(
+                          color: const Color(0xFFEF6C00)
+                              .withOpacity(0.4),
+                          width: 1.5)
+                          : null,
+                      boxShadow: [
+                        BoxShadow(
+                            color:
+                            Colors.black.withOpacity(0.05),
+                            blurRadius: 10)
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Header
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: rankColor,
+                            borderRadius:
+                            const BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: Colors.white
+                                      .withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(initials,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight:
+                                          FontWeight.bold,
+                                          fontSize: 16)),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                        candidate['name']
+                                        as String,
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight:
+                                            FontWeight
+                                                .bold)),
+                                    Text(
+                                        'Rank #${index + 1}',
+                                        style: TextStyle(
+                                            color: Colors.white
+                                                .withOpacity(
+                                                0.8),
+                                            fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding:
+                                const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white
+                                      .withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                    _rankIcon(index),
+                                    color: Colors.white,
+                                    size: 20),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Body
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment
+                                    .spaceBetween,
+                                children: [
+                                  const Text('Final Score',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight:
+                                          FontWeight.w600,
+                                          color: Color(
+                                              0xFF546E7A))),
+                                  Container(
+                                    padding: const EdgeInsets
+                                        .symmetric(
+                                        horizontal: 12,
+                                        vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: scoreColor
+                                          .withOpacity(0.1),
+                                      borderRadius:
+                                      BorderRadius.circular(
+                                          20),
+                                    ),
+                                    child: Text(
+                                        finalScore
+                                            .toStringAsFixed(1),
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight:
+                                            FontWeight.bold,
+                                            color:
+                                            scoreColor)),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              const Divider(height: 1),
+                              const SizedBox(height: 14),
+                              _scoreRow('Resume Match',
+                                  resumeScore, 100,
+                                  const Color(0xFF00897B)),
+                              const SizedBox(height: 12),
+                              _scoreRow('Interview Score',
+                                  interviewScore, 10,
+                                  const Color(0xFF3949AB)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                childCount: candidates.length,
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _scoreRow(
+      String label, double value, double max, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 12, color: Color(0xFF9E9E9E))),
+            Text(
+                '${value.toStringAsFixed(1)} / ${max.toStringAsFixed(0)}',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: color)),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: value / max,
+            backgroundColor: Colors.grey.shade100,
+            valueColor: AlwaysStoppedAnimation(color),
+            minHeight: 8,
+          ),
+        ),
+      ],
     );
   }
 }
