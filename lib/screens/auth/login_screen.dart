@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../recruiter/dashboard_screen.dart';
 import '../applicants/applicant_dashboard_screen.dart';
 import 'signup_screen.dart';
-
-enum UserRole { recruiter, applicant }
+import '../../services/auth_service.dart'; // UserRole is now defined here
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +14,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  UserRole selectedRole = UserRole.recruiter;
   bool _obscure = true;
   bool _loading = false;
 
@@ -30,17 +28,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+
+    final role = await AuthService.login(
+        emailController.text.trim(), passwordController.text.trim());
+
     setState(() => _loading = false);
 
-    if (mounted) {
-      if (selectedRole == UserRole.recruiter) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const DashboardScreen()));
-      } else {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const ApplicantDashboardScreen()));
-      }
+    if (!mounted) return;
+
+    if (role == UserRole.recruiter) {
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (_) => const DashboardScreen()));
+    } else if (role == UserRole.applicant) {
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (_) => const ApplicantDashboardScreen()));
+    } else {
+      _showSnack('Invalid email or password', isError: true);
     }
   }
 
@@ -60,13 +63,12 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: const Color(0xFFF0F4FF),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+          padding:
+          const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-
-              // Header icon
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -77,7 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.white, size: 32),
               ),
               const SizedBox(height: 24),
-
               const Text('Welcome back',
                   style: TextStyle(
                       fontSize: 28,
@@ -89,7 +90,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextStyle(fontSize: 14, color: Color(0xFF7986CB))),
               const SizedBox(height: 40),
 
-              // Email
               _label('Email address'),
               const SizedBox(height: 8),
               _textField(
@@ -100,7 +100,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Password
               _label('Password'),
               const SizedBox(height: 8),
               _textField(
@@ -116,42 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Role selector
-              _label('Sign in as'),
-              const SizedBox(height: 10),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                        color: const Color(0xFF3949AB).withOpacity(0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4))
-                  ],
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    _roleOption(
-                      label: 'Recruiter',
-                      icon: Icons.manage_accounts_outlined,
-                      role: UserRole.recruiter,
-                    ),
-                    const SizedBox(width: 8),
-                    _roleOption(
-                      label: 'Applicant',
-                      icon: Icons.person_search_rounded,
-                      role: UserRole.applicant,
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 36),
 
-              // Login button
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -178,14 +143,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Sign up link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Don't have an account? ",
                       style: TextStyle(color: Color(0xFF7986CB))),
                   GestureDetector(
-                    onTap: () => Navigator.push(context,
+                    onTap: () => Navigator.push(
+                        context,
                         MaterialPageRoute(
                             builder: (_) => const SignUpScreen())),
                     child: const Text('Sign Up',
@@ -194,49 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.bold)),
                   ),
                 ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _roleOption(
-      {required String label,
-        required IconData icon,
-        required UserRole role}) {
-    final isSelected = selectedRole == role;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => selectedRole = role),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF3949AB)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon,
-                  size: 18,
-                  color: isSelected
-                      ? Colors.white
-                      : const Color(0xFF7986CB)),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isSelected
-                      ? Colors.white
-                      : const Color(0xFF7986CB),
-                ),
               ),
             ],
           ),
@@ -282,8 +204,8 @@ class _LoginScreenState extends State<LoginScreen> {
           Icon(icon, color: const Color(0xFF7986CB), size: 20),
           suffixIcon: suffix,
           border: InputBorder.none,
-          contentPadding:
-          const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(
+              vertical: 16, horizontal: 16),
         ),
       ),
     );
