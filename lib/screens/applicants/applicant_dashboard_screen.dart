@@ -130,17 +130,6 @@ class _ApplicantDashboardScreenState
                     color: const Color(0xFF00897B),
                     onTap: _goToApplications,
                   ),
-                  const SizedBox(width: 14),
-                  // AI Score — not tappable
-                  _statCard(
-                    value: _hasInterviewed
-                        ? currentApplicant.interviewScore.toStringAsFixed(1)
-                        : '-',
-                    label: 'AI Score',
-                    icon: Icons.stars_rounded,
-                    color: const Color(0xFF7E57C2),
-                    onTap: null,
-                  ),
                 ],
               ),
               const SizedBox(height: 28),

@@ -4,9 +4,11 @@ import 'result_screen.dart';
 import 'applicants_screen.dart';
 import 'interview_screen.dart';
 import 'result_screen_with_scores.dart';
+import '../../models/applicant_model.dart';
 import 'jobs_screen.dart';
 import 'shortlist_screen.dart';
 import '../../data/job_store.dart';
+import 'package:ai_interview_app/screens/auth/login_screen.dart';
 
 
 class DashboardScreen extends StatefulWidget {
@@ -123,6 +125,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ));
   }
+  void _logout() {
+    currentApplicant = ApplicantModel();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -151,19 +162,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               fontSize: 13, color: Color(0xFF7986CB))),
                     ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 8)
-                      ],
-                    ),
-                    child: const Icon(Icons.notifications_none_rounded,
-                        color: Color(0xFF3949AB), size: 22),
+
+                  // 👇 Wrap icons together
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: _logout,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 8)
+                            ],
+                          ),
+                          child: const Icon(Icons.logout_rounded,
+                              color: Color(0xFF3949AB), size: 20),
+                        ),
+                      ),
+
+                      const SizedBox(width: 8), // 👈 small spacing
+
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.06),
+                                blurRadius: 8)
+                          ],
+                        ),
+                        child: const Icon(Icons.notifications_none_rounded,
+                            color: Color(0xFF3949AB), size: 22),
+                      ),
+                    ],
                   ),
                 ],
               ),

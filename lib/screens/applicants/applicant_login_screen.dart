@@ -18,7 +18,7 @@
 //
 //   void _login() async {
 //     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-//       _showSnack('Please fill in all fields', isError: true);
+//      _showSnack('Please fill in all fields', isError: true);
 //       return;
 //     }
 //     if (!_emailController.text.contains('@')) {
