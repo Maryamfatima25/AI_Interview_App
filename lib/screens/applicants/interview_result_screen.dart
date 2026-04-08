@@ -28,6 +28,7 @@ class InterviewResultScreen extends StatelessWidget {
     return Icons.school_rounded;
   }
 
+
   @override
   Widget build(BuildContext context) {
     final score = currentApplicant.interviewScore;

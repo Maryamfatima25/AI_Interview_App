@@ -23,6 +23,20 @@ final List<Map<String, dynamic>> dummyJobs = [
     "description": "Create cross-platform mobile applications",
     "positions": 1,
   },
+  {
+    "title": "ML Engineer",
+    "skills": ["Python", "Pandas", "MatplotLib"],
+    "experience": "2-3 years",
+    "description": "Develop backend APIs and manage database",
+    "positions": 8,
+  },
+  {
+    "title": "  UI/UX Designer",
+    "skills": ["Figma", "Photoshop", "adobe"],
+    "experience": "2-3 years",
+    "description": "Make posters",
+    "positions": 6,
+  }
 ];
 
 // ✅ Main job list (used in app)

@@ -1,26 +1,18 @@
-// lib/data/applicant_store.dart
-
 import 'dart:convert';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/applicant_model.dart';
 import 'dummy_candidates.dart';
 
-// ── In-memory list (loaded from file at runtime) ──────────────────────────
+const _kStoreKey = 'submitted_applicants';
+
+// In-memory list
 List<ApplicantModel> submittedApplicants = [];
 
-// ── File path helper ──────────────────────────────────────────────────────
-Future<File> _getStoreFile() async {
-  final dir = await getApplicationDocumentsDirectory();
-  return File('${dir.path}/submitted_applicants.json');
-}
-
-// ── WRITE: call this after submittedApplicants.add(...) ───────────────────
+// ── WRITE ────────────────────────────────────────────────────────────────
 Future<void> saveApplicantsToFile() async {
   try {
-    final file = await _getStoreFile();
-    final List<Map<String, dynamic>> jsonList = submittedApplicants
-        .map((a) => {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = submittedApplicants.map((a) => {
       'name':            a.name,
       'email':           a.email,
       'skills':          a.skills,
@@ -28,23 +20,25 @@ Future<void> saveApplicantsToFile() async {
       'appliedJobTitle': a.appliedJobTitle,
       'interviewScore':  a.interviewScore,
       'aiVerdict':       a.aiVerdict,
-    })
-        .toList();
-    await file.writeAsString(jsonEncode(jsonList));
+    }).toList();
+    await prefs.setString(_kStoreKey, jsonEncode(jsonList));
+    print('✅ Saved to SharedPrefs: ${jsonList.length} applicants');
   } catch (e) {
-    // fail silently — app still works with in-memory data
+    print('❌ Save error: $e');
   }
 }
 
-// ── READ: call this once at app startup ───────────────────────────────────
+// ── READ ─────────────────────────────────────────────────────────────────
 Future<void> loadApplicantsFromFile() async {
   try {
-    final file = await _getStoreFile();
-    if (!await file.exists()) return; // no file yet — first run
-
-    final content = await file.readAsString();
-    final List<dynamic> jsonList = jsonDecode(content);
-
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_kStoreKey);
+    if (raw == null || raw.isEmpty) {
+      print('🚀 App started — submittedApplicants: 0 (nothing saved yet)');
+      submittedApplicants = [];
+      return;
+    }
+    final List<dynamic> jsonList = jsonDecode(raw);
     submittedApplicants = jsonList.map((j) => ApplicantModel(
       name:            j['name']            ?? '',
       email:           j['email']           ?? '',
@@ -54,12 +48,14 @@ Future<void> loadApplicantsFromFile() async {
       interviewScore:  (j['interviewScore'] as num?)?.toDouble() ?? 0.0,
       aiVerdict:       j['aiVerdict']       ?? '',
     )).toList();
+    print('🚀 App started — submittedApplicants: ${submittedApplicants.length}');
   } catch (e) {
-    submittedApplicants = []; // corrupt file — start fresh
+    print('❌ Load error: $e');
+    submittedApplicants = [];
   }
 }
 
-// ── Merged list for recruiter (real + dummy) ──────────────────────────────
+// ── Merged list for recruiter ─────────────────────────────────────────────
 List<Map<String, dynamic>> get allApplicantsForRecruiter {
   final realAsMap = submittedApplicants.map((a) => {
     'name':           a.name,

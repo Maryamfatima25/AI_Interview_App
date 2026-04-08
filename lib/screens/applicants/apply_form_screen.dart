@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/applicant_model.dart';
 import '../../data/skill_keywords.dart';
-import 'ai_interview_screen.dart';
 import '../../data/applicant_store.dart';
-import '../../data/applied_candidates.dart';
+import 'ai_interview_screen.dart';
+
 
 class ApplyFormScreen extends StatefulWidget {
   final Map<String, dynamic> job;
@@ -117,38 +117,43 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
     await Future.delayed(const Duration(milliseconds: 800));
     setState(() => _loading = false);
 
-    currentApplicant.name = _nameController.text.trim();
-    currentApplicant.email = _emailController.text.trim();
-    currentApplicant.skills = skills;
-    currentApplicant.experience = _experience;
+    // Save to session
+    currentApplicant.name            = _nameController.text.trim();
+    currentApplicant.email           = _emailController.text.trim();
+    currentApplicant.skills          = skills;
+    currentApplicant.experience      = _experience;
     currentApplicant.appliedJobTitle = widget.job['title'] as String;
+
+    // Write to store + file
+    // Calculate match score against job's required skills
+    double _calculateMatchScore(List<String> enteredSkills, List<String> requiredSkills) {
+      if (requiredSkills.isEmpty) return 0.0;
+      final matched = enteredSkills.where((s) =>
+          requiredSkills.map((r) => r.toLowerCase().trim())
+              .contains(s.toLowerCase().trim())
+      ).length;
+      return (matched / requiredSkills.length) * 100;
+    }
+    final requiredSkills = (widget.job['skills'] as List).cast<String>();
+    final matchScore = _calculateMatchScore(skills, requiredSkills);
+
     submittedApplicants.add(ApplicantModel(
-      name:           currentApplicant.name,
-      email:          currentApplicant.email,
-      skills:         List<String>.from(currentApplicant.skills),
-      experience:     currentApplicant.experience,
+      name:            currentApplicant.name,
+      email:           currentApplicant.email,
+      skills:          List<String>.from(currentApplicant.skills),
+      experience:      currentApplicant.experience,
       appliedJobTitle: currentApplicant.appliedJobTitle,
-      interviewScore: 0.0,  // will be updated after interview
-      aiVerdict:      '',
+      interviewScore:  0.0,
+      aiVerdict:       '',
     ));
+    await saveApplicantsToFile();
+    print('✅ Submitted count: ${submittedApplicants.length}');
+    print('✅ Last applicant: ${submittedApplicants.last.name}');
+    print('✅ Last job title: ${submittedApplicants.last.appliedJobTitle}');
 
-    await saveApplicantsToFile(); // ← ADD THIS
 
-    // ✅ ADD DATA
-    appliedCandidates.add({
-      "name": currentApplicant.name,
-      "skills": currentApplicant.skills,
-      "resumeScore": 70,
-      "interviewScore": 0,
-      "jobTitle": currentApplicant.appliedJobTitle,
-    });
-
-    // ✅ DEBUG
-    print("Applied Candidates: $appliedCandidates");
-
-    // ✅ FIXED NAVIGATION
     if (mounted) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => AiInterviewScreen(job: widget.job),
@@ -156,7 +161,6 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
       );
     }
   }
-
   /// Hard block dialog — zero skill match
   void _showMismatchDialog({
     required List<String> missing,

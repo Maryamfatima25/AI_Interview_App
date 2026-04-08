@@ -6,10 +6,13 @@ class ApplicantModel {
   String password;
   List<String> skills;
   String experience;
-  String appliedJobTitle;
+  String appliedJobTitle;       // most recent job
   double resumeMatchScore;
   double interviewScore;
   String aiVerdict;
+
+  // ✅ NEW — tracks all jobs this applicant applied to
+  List<Map<String, dynamic>> appliedJobs;
 
   ApplicantModel({
     this.name             = '',
@@ -21,8 +24,8 @@ class ApplicantModel {
     this.resumeMatchScore = 0.0,
     this.interviewScore   = 0.0,
     this.aiVerdict        = '',
+    this.appliedJobs      = const [],
   });
 }
 
-// Global session object for the currently logged-in applicant
 ApplicantModel currentApplicant = ApplicantModel();

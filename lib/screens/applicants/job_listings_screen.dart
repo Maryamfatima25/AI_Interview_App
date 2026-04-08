@@ -1,28 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../../../../data/dummy_jobs.dart';
+import '../../data/job_store.dart';
 import 'job_detail_screen.dart';
-
-// ─── App-wide 2-Color Palette ─────────────────────────────────────────────────
-class AppColors {
-  // PRIMARY — Navy
-  static const navy         = Color(0xFF1B3165);
-  static const navyLight    = Color(0xFF284B9F);
-
-  // ACCENT — Teal
-  static const teal         = Color(0xFF00B4A6);
-  static const tealLight    = Color(0xFFE0F7F6);
-  static const tealDark     = Color(0xFF007A70);
-
-  // Neutrals
-  static const surface      = Color(0xFFF4F6FB);
-  static const card         = Colors.white;
-  static const border       = Color(0xFFE8ECF4);
-  static const textPrimary  = Color(0xFF0D1B3E);
-  static const textSub      = Color(0xFF5A6A8A);
-  static const textHint     = Color(0xFFABB8D4);
-}
-// ─────────────────────────────────────────────────────────────────────────────
 
 class JobListingsScreen extends StatefulWidget {
   const JobListingsScreen({super.key});
@@ -33,321 +11,405 @@ class JobListingsScreen extends StatefulWidget {
 
 class _JobListingsScreenState extends State<JobListingsScreen> {
   String _search = '';
-  final _searchController = TextEditingController();
 
+  final List<Color> _cardColors = [
+    const Color(0xFF3949AB),
+    const Color(0xFF00897B),
+    const Color(0xFF7E57C2),
+    const Color(0xFFEF6C00),
+    const Color(0xFF1565C0),
+    const Color(0xFF2E7D32),
+  ];
+
+  // Called every time screen comes into focus
+  // This is what makes new jobs appear when returning to this screen
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final jobs = dummyJobs.where((j) {
+
+    // Reads live every build — includes newly posted jobs
+    final allJobs = allJobsForApplicant;
+
+    final jobs = allJobs.where((j) {
       final title = (j['title'] as String).toLowerCase();
       return title.contains(_search.toLowerCase());
     }).toList();
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: AppColors.surface,
-        body: Column(
-          children: [
-            _buildHeader(jobs.length),
-            Expanded(
-              child: jobs.isEmpty
-                  ? _buildEmpty()
-                  : ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
-                itemCount: jobs.length,
-                itemBuilder: (ctx, i) => _buildJobCard(ctx, jobs[i], i),
-              ),
-            ),
-          ],
-        ),
+    final newCount = postedJobs.length;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F4FF),
+      appBar: AppBar(
+        title: const Text('Job Openings',
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A237E))),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme:
+        const IconThemeData(color: Color(0xFF3949AB)),
       ),
-    );
-  }
+      body: Column(
+        children: [
 
-  // ── Header ──────────────────────────────────────────────────────────────────
-  Widget _buildHeader(int count) {
-    return Container(
-      color: AppColors.navy,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top title row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Teal accent bar
-                  Container(
-                    width: 4,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.teal,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Job Openings',
-                            style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: -0.3)),
-                        Text('Discover your next opportunity',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white54)),
-                      ],
-                    ),
-                  ),
-                  // Count badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.teal,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text('$count Jobs',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            // ── Search bar sitting at bottom of header ─────────────────────
-            Container(
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          // ── Search ───────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
               decoration: BoxDecoration(
-                color: AppColors.navyLight,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                    color: AppColors.teal.withOpacity(0.35), width: 1.2),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8)
+                ],
               ),
               child: TextField(
-                controller: _searchController,
                 onChanged: (v) => setState(() => _search = v),
                 style: const TextStyle(
-                    fontSize: 14, color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search job title...',
-                  hintStyle: const TextStyle(
-                      color: Colors.white38, fontSize: 13),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: AppColors.teal, size: 20),
-                  suffixIcon: _search.isNotEmpty
-                      ? GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      setState(() => _search = '');
-                    },
-                    child: const Icon(Icons.close_rounded,
-                        color: Colors.white38, size: 18),
-                  )
-                      : null,
+                    fontSize: 14, color: Color(0xFF1A237E)),
+                decoration: const InputDecoration(
+                  hintText: 'Search jobs...',
+                  hintStyle:
+                  TextStyle(color: Color(0xFFB0BEC5)),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: Color(0xFF7986CB), size: 20),
                   border: InputBorder.none,
                   contentPadding:
-                  const EdgeInsets.symmetric(vertical: 15),
+                  EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
             ),
+          ),
 
-            const SizedBox(height: 16),
-
-            // ── Teal divider line at bottom of header ──────────────────────
-            Container(height: 3, color: AppColors.teal),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Job card ────────────────────────────────────────────────────────────────
-  Widget _buildJobCard(BuildContext ctx, Map<String, dynamic> job, int i) {
-    final skills = (job['skills'] as List).cast<String>();
-    // Alternate: navy header vs teal header
-    final isNavy = i.isEven;
-    final headerColor = isNavy ? AppColors.navy : AppColors.tealDark;
-    final chipColor   = isNavy ? AppColors.navy : AppColors.tealDark;
-
-    return GestureDetector(
-      onTap: () => Navigator.push(ctx,
-          MaterialPageRoute(builder: (_) => JobDetailScreen(job: job))),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.navy.withOpacity(0.07),
-                blurRadius: 12,
-                offset: const Offset(0, 4)),
-          ],
-        ),
-        child: Column(
-          children: [
-            // ── Colored header strip ────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 18, vertical: 14),
-              decoration: BoxDecoration(
-                color: headerColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+          // ── Stats row ────────────────────────────────────
+          Padding(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Text(
+                  '${jobs.length} position${jobs.length != 1 ? 's' : ''} found',
+                  style: const TextStyle(
+                      color: Color(0xFF7986CB),
+                      fontSize: 13),
                 ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: const Icon(Icons.business_center_outlined,
-                        color: Colors.white, size: 18),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(job['title'] as String,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 2),
-                        Text('${job['positions']} position(s) open',
-                            style: TextStyle(
-                                color: Colors.white.withOpacity(0.65),
-                                fontSize: 11)),
-                      ],
-                    ),
-                  ),
+                const Spacer(),
+                if (newCount > 0)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                        horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.teal,
-                      borderRadius: BorderRadius.circular(20),
+                      color: const Color(0xFF3949AB),
+                      borderRadius:
+                      BorderRadius.circular(20),
                     ),
-                    child: const Text('Apply',
-                        style: TextStyle(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                            Icons.fiber_new_rounded,
                             color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Card body ───────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.schedule_outlined,
-                          color: AppColors.textSub, size: 14),
-                      const SizedBox(width: 5),
-                      Text(job['experience'] as String,
+                            size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$newCount new',
                           style: const TextStyle(
-                              color: AppColors.textSub,
-                              fontSize: 12)),
-                      const SizedBox(width: 16),
-                      if (job['salary'] != null) ...[
-                        const Icon(Icons.payments_outlined,
-                            color: AppColors.tealDark, size: 14),
-                        const SizedBox(width: 5),
-                        Text(job['salary'] as String,
-                            style: const TextStyle(
-                                color: AppColors.tealDark,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600)),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 7,
-                    runSpacing: 6,
-                    children: skills
-                        .map((s) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: chipColor.withOpacity(0.07),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: chipColor.withOpacity(0.2)),
-                      ),
-                      child: Text(s,
-                          style: TextStyle(
-                              color: chipColor,
+                              color: Colors.white,
                               fontSize: 11,
-                              fontWeight: FontWeight.w600)),
-                    ))
-                        .toList(),
+                              fontWeight:
+                              FontWeight.bold),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Empty state ─────────────────────────────────────────────────────────────
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.tealLight,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.search_off_rounded,
-                color: AppColors.tealDark, size: 40),
           ),
-          const SizedBox(height: 16),
-          const Text('No jobs found',
-              style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          const Text('Try searching with a different keyword',
-              style: TextStyle(
-                  color: AppColors.textSub, fontSize: 13)),
+          const SizedBox(height: 10),
+
+          // ── Job list ─────────────────────────────────────
+          Expanded(
+            child: jobs.isEmpty
+                ? _emptyState()
+                : ListView.builder(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16),
+              itemCount: jobs.length,
+              itemBuilder: (ctx, i) {
+                final job = jobs[i];
+                final color = _cardColors[
+                i % _cardColors.length];
+                final skills =
+                (job['skills'] as List)
+                    .cast<String>();
+                final isNew =
+                postedJobs.contains(job);
+
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          JobDetailScreen(
+                              job: job),
+                    ),
+                  ),
+                  child: Container(
+                    margin: const EdgeInsets.only(
+                        bottom: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius:
+                      BorderRadius.circular(
+                          16),
+                      border: isNew
+                          ? Border.all(
+                          color: color
+                              .withOpacity(
+                              0.5),
+                          width: 1.5)
+                          : null,
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black
+                                .withOpacity(
+                                0.05),
+                            blurRadius: 10)
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Color header
+                        Container(
+                          padding:
+                          const EdgeInsets
+                              .all(18),
+                          decoration:
+                          BoxDecoration(
+                            color: color,
+                            borderRadius:
+                            const BorderRadius
+                                .only(
+                              topLeft: Radius
+                                  .circular(16),
+                              topRight: Radius
+                                  .circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding:
+                                const EdgeInsets
+                                    .all(10),
+                                decoration:
+                                BoxDecoration(
+                                  color: Colors
+                                      .white
+                                      .withOpacity(
+                                      0.2),
+                                  borderRadius:
+                                  BorderRadius
+                                      .circular(
+                                      10),
+                                ),
+                                child: const Icon(
+                                    Icons
+                                        .work_outline,
+                                    color: Colors
+                                        .white,
+                                    size: 20),
+                              ),
+                              const SizedBox(
+                                  width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment
+                                      .start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child:
+                                          Text(
+                                            job['title']
+                                            as String,
+                                            style: const TextStyle(
+                                                color: Colors
+                                                    .white,
+                                                fontSize:
+                                                16,
+                                                fontWeight:
+                                                FontWeight.bold),
+                                          ),
+                                        ),
+                                        if (isNew)
+                                          Container(
+                                            padding: const EdgeInsets
+                                                .symmetric(
+                                                horizontal:
+                                                8,
+                                                vertical:
+                                                3),
+                                            decoration:
+                                            BoxDecoration(
+                                              color:
+                                              Colors.white,
+                                              borderRadius:
+                                              BorderRadius.circular(
+                                                  10),
+                                            ),
+                                            child:
+                                            Text(
+                                              'NEW',
+                                              style:
+                                              TextStyle(
+                                                color:
+                                                color,
+                                                fontSize:
+                                                10,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                        height: 2),
+                                    Text(
+                                      '${job['positions']} position(s) open',
+                                      style: TextStyle(
+                                          color: Colors
+                                              .white
+                                              .withOpacity(
+                                              0.8),
+                                          fontSize:
+                                          12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                  Icons
+                                      .arrow_forward_ios_rounded,
+                                  color:
+                                  Colors.white,
+                                  size: 16),
+                            ],
+                          ),
+                        ),
+
+                        // Body
+                        Padding(
+                          padding:
+                          const EdgeInsets.all(
+                              16),
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment
+                                .start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                      Icons
+                                          .schedule_rounded,
+                                      color: Color(
+                                          0xFF7986CB),
+                                      size: 16),
+                                  const SizedBox(
+                                      width: 6),
+                                  Text(
+                                    job['experience']
+                                    as String,
+                                    style: const TextStyle(
+                                        color: Color(
+                                            0xFF7986CB),
+                                        fontSize:
+                                        13),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                  height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                children: skills
+                                    .map((s) =>
+                                    Container(
+                                      padding: const EdgeInsets
+                                          .symmetric(
+                                          horizontal:
+                                          10,
+                                          vertical:
+                                          4),
+                                      decoration:
+                                      BoxDecoration(
+                                        color: color
+                                            .withOpacity(
+                                            0.08),
+                                        borderRadius:
+                                        BorderRadius.circular(
+                                            20),
+                                        border: Border.all(
+                                            color: color.withOpacity(
+                                                0.25)),
+                                      ),
+                                      child: Text(
+                                        s,
+                                        style: TextStyle(
+                                            color:
+                                            color,
+                                            fontSize:
+                                            12,
+                                            fontWeight:
+                                            FontWeight.w500),
+                                      ),
+                                    ))
+                                    .toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
+
+  Widget _emptyState() => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.work_off_outlined,
+            size: 56, color: Colors.grey.shade300),
+        const SizedBox(height: 16),
+        const Text('No jobs found',
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey)),
+        const SizedBox(height: 8),
+        const Text('Try a different search term',
+            style: TextStyle(
+                fontSize: 13, color: Colors.grey)),
+      ],
+    ),
+  );
 }

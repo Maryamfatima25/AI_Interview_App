@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../data/dummy_candidates.dart';
 import '../../data/dummy_jobs.dart';
 import '../../data/applicant_store.dart';
-import '../../models/applicant_model.dart';
-import '../../data/applied_candidates.dart';
 
 class ApplicantsScreen extends StatefulWidget {
   final String? selectedJobTitle;
@@ -15,12 +13,6 @@ class ApplicantsScreen extends StatefulWidget {
 
 class _ApplicantsScreenState extends State<ApplicantsScreen> {
   String? selectedJob;
-
-  List<Map<String, dynamic>> filteredApplicants = [];
-  List<Map<String, dynamic>> get allApplicants => [
-    ...dummyCandidates,
-    ...appliedCandidates,
-  ];
 
   final List<Color> _avatarColors = [
     const Color(0xFF3949AB),
@@ -35,9 +27,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     selectedJob = widget.selectedJobTitle ?? 'All';
   }
 
-  // ── Merged list: real submissions first, then dummy ──────────────────────
+  // ── Single clean merged list ───────────────────────────────────────────
   List<Map<String, dynamic>> get _allMerged {
-    // Convert real ApplicantModel submissions → map format
     final realAsMap = submittedApplicants.map((a) => {
       'name':           a.name,
       'email':          a.email,
@@ -45,79 +36,50 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
       'skills':         a.skills,
       'experience':     a.experience,
       'interviewScore': a.interviewScore,
-      'resumeScore':    0.0,   // no resume in new flow
+      'resumeScore':    0.0,
       'isNew':          true,
     }).toList();
 
-    // Tag dummy candidates so we can distinguish them
     final dummyTagged = dummyCandidates.map((c) => {
       ...c,
       'isNew': false,
     }).toList();
 
+    // Real submissions first, then dummy
     return [...realAsMap, ...dummyTagged];
-    // ✅ Always apply filter instead of static assignment
-    _filter(selectedJob);
-    if (widget.selectedJobTitle != null) {
-      _filter(widget.selectedJobTitle);
-    }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // ✅ Refresh data when screen rebuilds
-    _filter(selectedJob);
-  }
-
-  void _filter(String? jobTitle) {
-    setState(() {
-      selectedJob = jobTitle;
-      final allApplicants = [
-        ...dummyCandidates,
-        ...appliedCandidates,
-      ];
-
-      if (jobTitle == null || jobTitle == "All") {
-        // Show all applicants
-        filteredApplicants = allApplicants;
-      } else {
-        // Filter by selected job
-        filteredApplicants = allApplicants
-            .where((applicant) => applicant['jobTitle'] == jobTitle)
-            .toList();
-      }
-    });
-  }
-
+  // ── Filter + sort applied on top of merged list ────────────────────────
   List<Map<String, dynamic>> get _filteredApplicants {
     final all = _allMerged;
+
     final filtered = (selectedJob == null || selectedJob == 'All')
         ? all
         : all.where((a) =>
     (a['jobTitle'] as String).toLowerCase() ==
         selectedJob!.toLowerCase()).toList();
 
-    // Sort by interviewScore descending
     filtered.sort((a, b) =>
         (b['interviewScore'] as num).compareTo(a['interviewScore'] as num));
+
     return filtered;
   }
 
   void _filter(String? jobTitle) =>
-      setState(() => selectedJob = jobTitle);
+      setState(() => selectedJob = jobTitle ?? 'All');
 
-  Color _scoreColor(double val, {bool isPercent = false}) {
-    final v = isPercent ? val / 10.0 : val;
-    if (v >= 8) return const Color(0xFF2E7D32);
-    if (v >= 6) return const Color(0xFF1565C0);
-    if (v >= 4) return const Color(0xFFE65100);
+  Color _scoreColor(double val) {
+    if (val >= 8) return const Color(0xFF2E7D32);
+    if (val >= 6) return const Color(0xFF1565C0);
+    if (val >= 4) return const Color(0xFFE65100);
     return const Color(0xFFC62828);
   }
 
   @override
   Widget build(BuildContext context) {
+    print('👀 submittedApplicants count: ${submittedApplicants.length}'); // ADD
+    print('👀 _allMerged count: ${_allMerged.length}');                   // ADD
+    print('👀 _filteredApplicants count: ${_filteredApplicants.length}');
     final applicants = _filteredApplicants;
     final newCount = applicants.where((a) => a['isNew'] == true).length;
 
@@ -137,7 +99,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // ── Stats bar ──────────────────────────────────────────────────
+            // ── Stats bar ─────────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -165,7 +127,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Filter dropdown ────────────────────────────────────────────
+            // ── Filter dropdown ───────────────────────────────────────────
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -208,7 +170,6 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Count row
             Row(
               children: [
                 const Icon(Icons.people_outline,
@@ -223,7 +184,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── List ───────────────────────────────────────────────────────
+            // ── List ──────────────────────────────────────────────────────
             Expanded(
               child: applicants.isEmpty
                   ? Center(
@@ -267,7 +228,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   Widget _buildCard(Map<String, dynamic> applicant, int index) {
     final avatarColor = _avatarColors[index % _avatarColors.length];
     final interviewScore = (applicant['interviewScore'] as num).toDouble();
-    final resumeScore = (applicant['resumeScore'] as num).toDouble();
+    final resumeScore = (applicant['resumeScore'] as num? ?? 0).toDouble();
     final isNew = applicant['isNew'] == true;
     final initials = (applicant['name'] as String)
         .split(' ')
@@ -276,7 +237,6 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         .join()
         .toUpperCase();
 
-    // Job skills for highlighting matched chips
     final jobSkills = selectedJob != null && selectedJob != 'All'
         ? (dummyJobs.firstWhere(
             (j) => j['title'] == selectedJob,
@@ -302,7 +262,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
       ),
       child: Column(
         children: [
-          // ── Colored header ───────────────────────────────────────────────
+          // ── Header ──────────────────────────────────────────────────────
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -335,11 +295,13 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(applicant['name'] as String,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold)),
+                          Flexible(
+                            child: Text(applicant['name'] as String,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold)),
+                          ),
                           if (isNew) ...[
                             const SizedBox(width: 8),
                             Container(
@@ -365,17 +327,14 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                     ],
                   ),
                 ),
-                // Interview score badge
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      interviewScore.toStringAsFixed(1),
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20),
-                    ),
+                    Text(interviewScore.toStringAsFixed(1),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20)),
                     Text('/ 10',
                         style: TextStyle(
                             color: Colors.white.withOpacity(0.7),
@@ -386,21 +345,19 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
             ),
           ),
 
-          // ── Body ─────────────────────────────────────────────────────────
+          // ── Body ────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Skills with match highlighting
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
                   children: (applicant['skills'] as List<dynamic>)
                       .cast<String>()
                       .map((s) {
-                    final isMatch =
-                    jobSkills.contains(s.toLowerCase());
+                    final isMatch = jobSkills.contains(s.toLowerCase());
                     return Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
@@ -431,10 +388,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                 const Divider(height: 1),
                 const SizedBox(height: 14),
 
-                // Scores row
                 Row(
                   children: [
-                    // Only show resume score for dummy candidates
                     if (!isNew) ...[
                       Expanded(
                         child: _scoreWidget('Resume Match', resumeScore,
@@ -449,7 +404,6 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                   ],
                 ),
 
-                // Experience if available
                 if ((applicant['experience'] ?? '').toString().isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Row(
@@ -471,8 +425,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     );
   }
 
-  Widget _scoreWidget(
-      String label, double value, double max, Color color) {
+  Widget _scoreWidget(String label, double value, double max, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -503,27 +456,27 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     );
   }
 
-  Widget _statPill(String value, String label, Color color) =>
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(value,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                    fontSize: 14)),
-            const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    color: color.withOpacity(0.8), fontSize: 11)),
-          ],
-        ),
-      );
+  Widget _statPill(String value, String label, Color color) => Container(
+    padding:
+    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: color.withOpacity(0.3)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(value,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: color,
+                fontSize: 14)),
+        const SizedBox(width: 4),
+        Text(label,
+            style: TextStyle(
+                color: color.withOpacity(0.8), fontSize: 11)),
+      ],
+    ),
+  );
 }

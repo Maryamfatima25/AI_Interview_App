@@ -1,1 +1,1 @@
-List<Map<String, dynamic>> appliedCandidates = [];
+// List<Map<String, dynamic>> appliedCandidates = [];

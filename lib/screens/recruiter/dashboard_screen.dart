@@ -6,6 +6,8 @@ import 'interview_screen.dart';
 import 'result_screen_with_scores.dart';
 import 'jobs_screen.dart';
 import 'shortlist_screen.dart';
+import '../../data/job_store.dart';
+
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -63,6 +65,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             MaterialPageRoute(builder: (_) => const CreateJobScreen()))
             .then((jobData) {
           if (jobData != null) setState(() => createdJob = jobData);
+          postedJobs.add(jobData);
+
         });
         break;
       case 1:

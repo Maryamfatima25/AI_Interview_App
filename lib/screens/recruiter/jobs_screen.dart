@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/dummy_jobs.dart';
 import 'job_details_screen.dart';
+import '../../data/job_store.dart';
+
 
 class JobsScreen extends StatelessWidget {
   const JobsScreen({super.key});
@@ -14,6 +16,7 @@ class JobsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final jobs = postedJobs;
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4FF),
       appBar: AppBar(
