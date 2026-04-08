@@ -3,6 +3,7 @@ import '../../data/dummy_candidates.dart';
 import '../../data/dummy_jobs.dart';
 import '../../data/applicant_store.dart';
 import '../../models/applicant_model.dart';
+import '../../data/applied_candidates.dart';
 
 class ApplicantsScreen extends StatefulWidget {
   final String? selectedJobTitle;
@@ -14,6 +15,12 @@ class ApplicantsScreen extends StatefulWidget {
 
 class _ApplicantsScreenState extends State<ApplicantsScreen> {
   String? selectedJob;
+
+  List<Map<String, dynamic>> filteredApplicants = [];
+  List<Map<String, dynamic>> get allApplicants => [
+    ...dummyCandidates,
+    ...appliedCandidates,
+  ];
 
   final List<Color> _avatarColors = [
     const Color(0xFF3949AB),
@@ -49,6 +56,39 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     }).toList();
 
     return [...realAsMap, ...dummyTagged];
+    // ✅ Always apply filter instead of static assignment
+    _filter(selectedJob);
+    if (widget.selectedJobTitle != null) {
+      _filter(widget.selectedJobTitle);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // ✅ Refresh data when screen rebuilds
+    _filter(selectedJob);
+  }
+
+  void _filter(String? jobTitle) {
+    setState(() {
+      selectedJob = jobTitle;
+      final allApplicants = [
+        ...dummyCandidates,
+        ...appliedCandidates,
+      ];
+
+      if (jobTitle == null || jobTitle == "All") {
+        // Show all applicants
+        filteredApplicants = allApplicants;
+      } else {
+        // Filter by selected job
+        filteredApplicants = allApplicants
+            .where((applicant) => applicant['jobTitle'] == jobTitle)
+            .toList();
+      }
+    });
   }
 
   List<Map<String, dynamic>> get _filteredApplicants {

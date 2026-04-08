@@ -3,6 +3,7 @@ import '../../models/applicant_model.dart';
 import '../../data/skill_keywords.dart';
 import 'ai_interview_screen.dart';
 import '../../data/applicant_store.dart';
+import '../../data/applied_candidates.dart';
 
 class ApplyFormScreen extends StatefulWidget {
   final Map<String, dynamic> job;
@@ -96,14 +97,12 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
     final matched = _getMatchedSkills(skills);
     final missing = _getMissingSkills(skills);
 
-    // No skills match at all — block and show dialog
     if (matched.isEmpty) {
       final suggested = _getSuggestedRoles(skills);
       _showMismatchDialog(missing: missing, suggested: suggested);
       return;
     }
 
-    // Partial match (less than 30%) — warn but allow to proceed
     final required = (widget.job['skills'] as List).cast<String>();
     final matchRatio = matched.length / required.length;
     if (matchRatio < 0.3) {
@@ -135,11 +134,26 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
 
     await saveApplicantsToFile(); // ← ADD THIS
 
+    // ✅ ADD DATA
+    appliedCandidates.add({
+      "name": currentApplicant.name,
+      "skills": currentApplicant.skills,
+      "resumeScore": 70,
+      "interviewScore": 0,
+      "jobTitle": currentApplicant.appliedJobTitle,
+    });
+
+    // ✅ DEBUG
+    print("Applied Candidates: $appliedCandidates");
+
+    // ✅ FIXED NAVIGATION
     if (mounted) {
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (_) => AiInterviewScreen(job: widget.job)));
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AiInterviewScreen(job: widget.job),
+        ),
+      );
     }
   }
 
