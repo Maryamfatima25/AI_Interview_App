@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/applicant_model.dart';
 import '../../data/skill_keywords.dart';
 import 'ai_interview_screen.dart';
+import '../../data/applicant_store.dart';
 
 class ApplyFormScreen extends StatefulWidget {
   final Map<String, dynamic> job;
@@ -122,6 +123,17 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
     currentApplicant.skills = skills;
     currentApplicant.experience = _experience;
     currentApplicant.appliedJobTitle = widget.job['title'] as String;
+    submittedApplicants.add(ApplicantModel(
+      name:           currentApplicant.name,
+      email:          currentApplicant.email,
+      skills:         List<String>.from(currentApplicant.skills),
+      experience:     currentApplicant.experience,
+      appliedJobTitle: currentApplicant.appliedJobTitle,
+      interviewScore: 0.0,  // will be updated after interview
+      aiVerdict:      '',
+    ));
+
+    await saveApplicantsToFile(); // ← ADD THIS
 
     if (mounted) {
       Navigator.pushReplacement(

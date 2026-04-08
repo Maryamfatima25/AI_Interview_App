@@ -1,3 +1,5 @@
+// lib/models/applicant_model.dart
+
 class ApplicantModel {
   String name;
   String email;
@@ -10,17 +12,17 @@ class ApplicantModel {
   String aiVerdict;
 
   ApplicantModel({
-    this.name = '',
-    this.email = '',
-    this.password = '',
-    this.skills = const [],
-    this.experience = '',
-    this.appliedJobTitle = '',
+    this.name             = '',
+    this.email            = '',
+    this.password         = '',
+    this.skills           = const [],
+    this.experience       = '',
+    this.appliedJobTitle  = '',
     this.resumeMatchScore = 0.0,
-    this.interviewScore = 0.0,
-    this.aiVerdict = '',
+    this.interviewScore   = 0.0,
+    this.aiVerdict        = '',
   });
 }
 
-// A simple global session object — no database needed
+// Global session object for the currently logged-in applicant
 ApplicantModel currentApplicant = ApplicantModel();

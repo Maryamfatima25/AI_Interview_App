@@ -1,10 +1,12 @@
 // lib/screens/applicant/applicant_dashboard_screen.dart
 
+import 'package:ai_interview_app/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import '../../data/dummy_jobs.dart';
 import '../../models/applicant_model.dart';
 import 'job_listings_screen.dart';
 import 'applicant_login_screen.dart';
+import '../auth/login_screen.dart';
 
 class ApplicantDashboardScreen extends StatefulWidget {
   const ApplicantDashboardScreen({super.key});
@@ -41,15 +43,19 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
     return 'Applicant';
   }
 
-  // void _logout() {
-  //   // Reset the session so next login starts fresh
-  //   currentApplicant = ApplicantModel();
-  //   Navigator.pushAndRemoveUntil(
-  //     context,
-  //     MaterialPageRoute(builder: (_) => const ApplicantLoginScreen()),
-  //         (route) => false,
-  //   );
-  // }
+  void _logout() {
+    // Reset user session
+    currentApplicant = ApplicantModel();
+
+    // Navigate to Auth Dashboard and remove all previous screens
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+          (route) => false, // removes all previous routes
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +89,7 @@ class _ApplicantDashboardScreenState extends State<ApplicantDashboardScreen> {
                     ],
                   ),
                   GestureDetector(
-                    // onTap: _logout,
+                    onTap: _logout,
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/applicant_model.dart';
 import 'applicant_dashboard_screen.dart';
+// ADD this line alongside existing imports
+import '../../data/applicant_store.dart';
 
 class InterviewResultScreen extends StatelessWidget {
   const InterviewResultScreen({super.key});
@@ -29,6 +31,13 @@ class InterviewResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final score = currentApplicant.interviewScore;
+    // Update the last submitted applicant's score so recruiter sees it
+    if (submittedApplicants.isNotEmpty) {
+      submittedApplicants.last.interviewScore = score;
+      submittedApplicants.last.aiVerdict     = currentApplicant.aiVerdict;
+      saveApplicantsToFile();
+    }
+
     final color = _scoreColor(score);
 
     return Scaffold(
