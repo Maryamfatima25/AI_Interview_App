@@ -1,4 +1,4 @@
-# AI-Based Interview & Recruitment System 💼🤖
+# AI-Based Interview & Recruitment System 
 
 A Flutter-based mobile application that simulates a modern recruitment platform where applicants can apply for jobs and experience an AI-driven interview process, while recruiters can efficiently manage and evaluate candidates.
 
