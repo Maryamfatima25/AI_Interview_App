@@ -5,6 +5,8 @@ import '../../data/job_store.dart';
 import '../../data/applicant_store.dart';
 import 'job_listings_screen.dart';
 import 'my_applicant_screen.dart';
+import 'profile_setup_screen.dart';
+import 'profile_screen.dart';
 
 class ApplicantDashboardScreen extends StatefulWidget {
   const ApplicantDashboardScreen({super.key});
@@ -78,19 +80,46 @@ class _ApplicantDashboardScreenState
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Hello, $_displayName 👋',
-                          style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A237E))),
-                      const Text('Find your dream job today',
-                          style: TextStyle(
-                              fontSize: 13, color: Color(0xFF7986CB))),
-                    ],
+                  GestureDetector(
+                    onTap: () {
+                      if (currentApplicant.skills.isEmpty) {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileSetupScreen()));
+                      } else {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 8)],
+                      ),
+                      child: const Icon(Icons.person_rounded,
+                          color: Color(0xFF3949AB), size: 20),
+                    ),
                   ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text('Hello, $_displayName 👋',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A237E))),
+                        const Text('Find your dream job today',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 12, color: Color(0xFF7986CB))),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: _logout,
                     child: Container(
@@ -226,6 +255,16 @@ class _ApplicantDashboardScreenState
                       color: Color(0xFF1A237E))),
               const SizedBox(height: 16),
 
+              _journeyStep(
+                icon: Icons.upload_file_rounded,
+                title: 'Upload CV',
+                subtitle: currentApplicant.skills.isNotEmpty 
+                    ? 'CV parsed successfully' 
+                    : 'Get matched better with a CV',
+                color: const Color(0xFF3949AB),
+                done: currentApplicant.skills.isNotEmpty,
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileSetupScreen())),
+              ),
               _journeyStep(
                 icon: Icons.search_rounded,
                 title: 'Browse jobs',

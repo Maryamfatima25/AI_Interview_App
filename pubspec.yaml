@@ -28,15 +28,17 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  shared_preferences: ^2.1.2
+  shared_preferences: ^2.5.5
   flutter:
     sdk: flutter
-  file_picker: ^8.0.0       # lets user pick a file from device
-  syncfusion_flutter_pdf: ^24.1.41  # extracts text from PDF locally
+  file_picker: ^11.0.2       # lets user pick a file from device
+  syncfusion_flutter_pdf: ^33.2.7  # extracts text from PDF locally
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  intl: ^0.20.2
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

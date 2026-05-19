@@ -1,7 +1,26 @@
 import 'package:flutter/material.dart';
+import '../../data/applicant_store.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
+
+  List<Map<String, dynamic>> get _allMerged {
+    final realAsMap = submittedApplicants.map((a) => {
+      'name':           a.name,
+      'email':          a.email,
+      'jobTitle':       a.appliedJobTitle,
+      'resumeScore':    a.resumeMatchScore,
+      'interviewScore': a.interviewScore,
+      'isNew':          true,
+    }).toList();
+
+    final dummy = [
+      {'name': 'Ali', 'resumeScore': 85, 'interviewScore': 8.5, 'isNew': false, 'jobTitle': 'Frontend Developer'},
+      {'name': 'Sara', 'resumeScore': 80, 'interviewScore': 7.9, 'isNew': false, 'jobTitle': 'Mobile Developer'},
+    ];
+
+    return [...realAsMap, ...dummy];
+  }
 
   Color _rankColor(int index) {
     if (index == 0) return const Color(0xFFEF6C00);
@@ -26,11 +45,7 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> candidates = [
-      {'name': 'Ali', 'resumeScore': 85, 'interviewScore': 8.5},
-      {'name': 'Sara', 'resumeScore': 80, 'interviewScore': 7.9},
-      {'name': 'Ahmed', 'resumeScore': 40, 'interviewScore': 6.2},
-    ];
+    List<Map<String, dynamic>> candidates = _allMerged;
 
     for (final c in candidates) {
       c['finalScore'] =
