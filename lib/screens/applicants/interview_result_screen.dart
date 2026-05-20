@@ -28,14 +28,13 @@ class InterviewResultScreen extends StatelessWidget {
     return Icons.school_rounded;
   }
 
-
   @override
   Widget build(BuildContext context) {
     final score = currentApplicant.interviewScore;
     // Update the last submitted applicant's score so recruiter sees it
     if (submittedApplicants.isNotEmpty) {
       submittedApplicants.last.interviewScore = score;
-      submittedApplicants.last.aiVerdict     = currentApplicant.aiVerdict;
+      submittedApplicants.last.aiVerdict = currentApplicant.aiVerdict;
       saveApplicantsToFile();
     }
 
@@ -52,7 +51,8 @@ class InterviewResultScreen extends StatelessWidget {
 
               // Big score circle
               Container(
-                width: 140, height: 140,
+                width: 140,
+                height: 140,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: color.withOpacity(0.1),
@@ -61,22 +61,44 @@ class InterviewResultScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(score.toStringAsFixed(1),
-                        style: TextStyle(
-                            fontSize: 38, fontWeight: FontWeight.bold, color: color)),
-                    Text('out of 10',
-                        style: TextStyle(fontSize: 12, color: color.withOpacity(0.7))),
+                    Text(
+                      score.toStringAsFixed(1),
+                      style: TextStyle(
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    Text(
+                      'out of 10',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: color.withOpacity(0.7),
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              Text(_scoreLabel(score),
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
+              Text(
+                _scoreLabel(score),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text(currentApplicant.aiVerdict,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 14, color: Color(0xFF546E7A), height: 1.5)),
+              Text(
+                currentApplicant.aiVerdict,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF546E7A),
+                  height: 1.5,
+                ),
+              ),
               const SizedBox(height: 32),
 
               // Score card
@@ -85,16 +107,31 @@ class InterviewResultScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Interview Score',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
-                            color: Color(0xFF1A237E))),
+                    const Text(
+                      'Interview Score',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A237E),
+                      ),
+                    ),
                     const SizedBox(height: 18),
-                    _scoreRow('Interview score', score, 10, const Color(0xFF3949AB)),
+                    _scoreRow(
+                      'Interview score',
+                      score,
+                      10,
+                      const Color(0xFF3949AB),
+                    ),
                   ],
                 ),
               ),
@@ -106,23 +143,41 @@ class InterviewResultScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    _infoRow(Icons.person_outline, 'Name', currentApplicant.name),
+                    _infoRow(
+                      Icons.person_outline,
+                      'Name',
+                      currentApplicant.name,
+                    ),
                     const Divider(height: 20),
-                    _infoRow(Icons.work_outline, 'Applied for',
-                        currentApplicant.appliedJobTitle),
+                    _infoRow(
+                      Icons.work_outline,
+                      'Applied for',
+                      currentApplicant.appliedJobTitle,
+                    ),
                     const Divider(height: 20),
-                    _infoRow(Icons.schedule_rounded, 'Experience',
-                        currentApplicant.experience.isEmpty
-                            ? 'Not specified'
-                            : currentApplicant.experience),
+                    _infoRow(
+                      Icons.schedule_rounded,
+                      'Experience',
+                      currentApplicant.experience.isEmpty
+                          ? 'Not specified'
+                          : currentApplicant.experience,
+                    ),
                     if (currentApplicant.skills.isNotEmpty) ...[
                       const Divider(height: 20),
-                      _infoRow(Icons.psychology_outlined, 'Skills',
-                          currentApplicant.skills.join(', ')),
+                      _infoRow(
+                        Icons.psychology_outlined,
+                        'Skills',
+                        currentApplicant.skills.join(', '),
+                      ),
                     ],
                   ],
                 ),
@@ -135,16 +190,26 @@ class InterviewResultScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8EAF6),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF3949AB).withOpacity(0.2)),
+                  border: Border.all(
+                    color: const Color(0xFF3949AB).withOpacity(0.2),
+                  ),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.info_outline, color: Color(0xFF3949AB), size: 20),
+                    Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF3949AB),
+                      size: 20,
+                    ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Your results have been submitted. The recruiter will review top candidates and contact you.',
-                        style: TextStyle(fontSize: 13, color: Color(0xFF3949AB), height: 1.5),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF3949AB),
+                          height: 1.5,
+                        ),
                       ),
                     ),
                   ],
@@ -159,17 +224,26 @@ class InterviewResultScreen extends StatelessWidget {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF3949AB),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     elevation: 0,
                   ),
                   onPressed: () => Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => const ApplicantDashboardScreen()),
-                        (route) => false,
+                    MaterialPageRoute(
+                      builder: (_) => const ApplicantDashboardScreen(),
+                    ),
+                    (route) => false,
                   ),
-                  child: const Text('Back to Dashboard',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
-                          color: Colors.white)),
+                  child: const Text(
+                    'Back to Dashboard',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -187,9 +261,18 @@ class InterviewResultScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF546E7A))),
-            Text('${value.toStringAsFixed(1)} / ${max.toStringAsFixed(0)}',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF546E7A)),
+            ),
+            Text(
+              '${value.toStringAsFixed(1)} / ${max.toStringAsFixed(0)}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -211,14 +294,21 @@ class InterviewResultScreen extends StatelessWidget {
       children: [
         Icon(icon, color: const Color(0xFF7986CB), size: 18),
         const SizedBox(width: 12),
-        Text(label,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF9E9E9E))),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: Color(0xFF9E9E9E)),
+        ),
         const Spacer(),
         Flexible(
-          child: Text(value,
-              textAlign: TextAlign.right,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                  color: Color(0xFF37474F))),
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF37474F),
+            ),
+          ),
         ),
       ],
     );
