@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/applicant_model.dart';
 import 'dummy_candidates.dart';
@@ -22,9 +23,13 @@ Future<void> saveApplicantsToFile() async {
       'aiVerdict':       a.aiVerdict,
     }).toList();
     await prefs.setString(_kStoreKey, jsonEncode(jsonList));
-    print('✅ Saved to SharedPrefs: ${jsonList.length} applicants');
+    if (kDebugMode) {
+      debugPrint('✅ Saved to SharedPrefs: ${jsonList.length} applicants');
+    }
   } catch (e) {
-    print('❌ Save error: $e');
+    if (kDebugMode) {
+      debugPrint('❌ Save error: $e');
+    }
   }
 }
 
@@ -34,7 +39,9 @@ Future<void> loadApplicantsFromFile() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_kStoreKey);
     if (raw == null || raw.isEmpty) {
-      print('🚀 App started — submittedApplicants: 0 (nothing saved yet)');
+      if (kDebugMode) {
+        debugPrint('🚀 App started — submittedApplicants: 0 (nothing saved yet)');
+      }
       submittedApplicants = [];
       return;
     }
@@ -48,9 +55,13 @@ Future<void> loadApplicantsFromFile() async {
       interviewScore:  (j['interviewScore'] as num?)?.toDouble() ?? 0.0,
       aiVerdict:       j['aiVerdict']       ?? '',
     )).toList();
-    print('🚀 App started — submittedApplicants: ${submittedApplicants.length}');
+    if (kDebugMode) {
+      debugPrint('🚀 App started — submittedApplicants: ${submittedApplicants.length}');
+    }
   } catch (e) {
-    print('❌ Load error: $e');
+    if (kDebugMode) {
+      debugPrint('❌ Load error: $e');
+    }
     submittedApplicants = [];
   }
 }

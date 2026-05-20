@@ -1,6 +1,7 @@
 // lib/data/job_store.dart
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dummy_jobs.dart';
 
@@ -24,9 +25,13 @@ Future<void> saveJobsToFile() async {
       'isNew':       j['isNew']       ?? true,
     }).toList();
     await prefs.setString(_kJobsKey, jsonEncode(jsonList));
-    print('✅ Jobs saved: ${jsonList.length}');
+    if (kDebugMode) {
+      debugPrint('✅ Jobs saved: ${jsonList.length}');
+    }
   } catch (e) {
-    print('❌ Job save error: $e');
+    if (kDebugMode) {
+      debugPrint('❌ Job save error: $e');
+    }
   }
 }
 
@@ -37,7 +42,9 @@ Future<void> loadJobsFromFile() async {
     final raw = prefs.getString(_kJobsKey);
     if (raw == null || raw.isEmpty) {
       postedJobs = [];
-      print('🚀 No saved jobs found');
+      if (kDebugMode) {
+        debugPrint('🚀 No saved jobs found');
+      }
       return;
     }
     final List<dynamic> jsonList = jsonDecode(raw);
@@ -51,9 +58,13 @@ Future<void> loadJobsFromFile() async {
       'postedAt':    j['postedAt']    ?? '',
       'isNew':       j['isNew']       ?? true,
     }).toList();
-    print('🚀 Jobs loaded: ${postedJobs.length}');
+    if (kDebugMode) {
+      debugPrint('🚀 Jobs loaded: ${postedJobs.length}');
+    }
   } catch (e) {
-    print('❌ Job load error: $e');
+    if (kDebugMode) {
+      debugPrint('❌ Job load error: $e');
+    }
     postedJobs = [];
   }
 }

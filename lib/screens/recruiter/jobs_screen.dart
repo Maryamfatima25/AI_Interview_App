@@ -16,7 +16,7 @@ class JobsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final jobs = postedJobs;
+    final jobs = [...postedJobs, ...dummyJobs];
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4FF),
       appBar: AppBar(
@@ -28,7 +28,7 @@ class JobsScreen extends StatelessWidget {
         elevation: 0.5,
         iconTheme: const IconThemeData(color: Color(0xFF3949AB)),
       ),
-      body: jobsList.isEmpty
+      body: jobs.isEmpty
           ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -57,9 +57,9 @@ class JobsScreen extends StatelessWidget {
       )
           : ListView.builder(
         padding: const EdgeInsets.all(20),
-        itemCount: jobsList.length,
+        itemCount: jobs.length,
         itemBuilder: (context, index) {
-          final job = jobsList[index];
+          final job = jobs[index];
           final color = _cardColors[index % _cardColors.length];
           final skills =
           (job['skills'] as List).cast<String>();
