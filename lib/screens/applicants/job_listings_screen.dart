@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/job_service.dart';
-import '../../utils/data_helper.dart';
 import 'job_detail_screen.dart';
 
 class JobListingsScreen extends StatefulWidget {
@@ -41,20 +40,25 @@ class _JobListingsScreenState
       body: Column(
         children: [
 
-          // Search
+          // ── Search bar ───────────────────────────────
           Padding(
             padding: const EdgeInsets.all(16),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8)],
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8)
+                ],
               ),
               child: TextField(
                 onChanged: (v) =>
                     setState(() => _search = v),
+                style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF1A237E)),
                 decoration: const InputDecoration(
                   hintText: 'Search jobs...',
                   hintStyle: TextStyle(
@@ -69,81 +73,92 @@ class _JobListingsScreenState
             ),
           ),
 
+          // ── Live job list from Firestore ─────────────
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
               stream: JobService.getJobsStream(),
               builder: (context, snapshot) {
-                // ── Hybrid: merge Firebase + dummy ───────
-                final firebaseJobs = snapshot.data ?? [];
-                final allJobs = mergeJobs(firebaseJobs);
 
-                // Apply search filter
+                // Loading state
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                        color: Color(0xFF3949AB)),
+                  );
+                }
+
+                // Error state
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: const TextStyle(
+                          color: Colors.red),
+                    ),
+                  );
+                }
+
+                // Filter by search
+                final allJobs = snapshot.data ?? [];
                 final jobs = allJobs.where((j) {
-                  return (j['title'] as String)
-                      .toLowerCase()
-                      .contains(_search.toLowerCase());
+                  final title = (j['title'] as String)
+                      .toLowerCase();
+                  return title.contains(
+                      _search.toLowerCase());
                 }).toList();
-
-                final liveCount = firebaseJobs.length;
-                final isLoading = snapshot.connectionState
-                    == ConnectionState.waiting;
 
                 return Column(
                   children: [
-                    // Stats row
+
+                    // Count row
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16),
                       child: Row(
                         children: [
                           Text(
-                            '${jobs.length} positions found',
+                            '${jobs.length} position${jobs.length != 1 ? 's' : ''} found',
                             style: const TextStyle(
                                 color: Color(0xFF7986CB),
                                 fontSize: 13),
                           ),
                           const Spacer(),
-                          // Live badge if Firebase has data
-                          if (liveCount > 0)
-                            Container(
-                              padding:
-                              const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF43A047)
-                                    .withOpacity(0.1),
-                                borderRadius:
-                                BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize:
-                                MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.circle,
-                                      color:
-                                      Color(0xFF43A047),
-                                      size: 7),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '$liveCount live',
-                                    style: const TextStyle(
+                          // Live indicator
+                          Container(
+                            padding:
+                            const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF43A047)
+                                  .withOpacity(0.1),
+                              borderRadius:
+                              BorderRadius.circular(
+                                  20),
+                            ),
+                            child: const Row(
+                              mainAxisSize:
+                              MainAxisSize.min,
+                              children: [
+                                Icon(
+                                    Icons
+                                        .circle,
+                                    color:
+                                    Color(0xFF43A047),
+                                    size: 8),
+                                SizedBox(width: 4),
+                                Text('Live',
+                                    style: TextStyle(
                                         color: Color(
                                             0xFF43A047),
                                         fontSize: 11,
                                         fontWeight:
-                                        FontWeight.bold),
-                                  ),
-                                ],
-                              ),
+                                        FontWeight
+                                            .bold)),
+                              ],
                             ),
-                          if (isLoading)
-                            const SizedBox(
-                              width: 14, height: 14,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFF3949AB)),
-                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -151,41 +166,48 @@ class _JobListingsScreenState
 
                     // Job cards
                     Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(
+                      child: jobs.isEmpty
+                          ? _emptyState()
+                          : ListView.builder(
+                        padding:
+                        const EdgeInsets.symmetric(
                             horizontal: 16),
                         itemCount: jobs.length,
                         itemBuilder: (ctx, i) {
                           final job = jobs[i];
-                          final color =
-                          _colors[i % _colors.length];
-                          final skills =
-                          (job['skills'] as List? ?? [])
-                              .cast<String>();
-                          final isDemo =
-                              job['isDemo'] == true;
+                          final color = _colors[
+                          i % _colors.length];
+                          final skills = (job['skills']
+                          as List? ??
+                              []).cast<String>();
 
                           return GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    JobDetailScreen(
-                                        job: job),
-                              ),
-                            ),
+                            onTap: () =>
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        JobDetailScreen(
+                                            job: job),
+                                  ),
+                                ),
                             child: Container(
-                              margin: const EdgeInsets.only(
-                                  bottom: 14),
-                              decoration: BoxDecoration(
+                              margin: const EdgeInsets
+                                  .only(bottom: 14),
+                              decoration:
+                              BoxDecoration(
                                 color: Colors.white,
                                 borderRadius:
-                                BorderRadius.circular(
-                                    16),
-                                boxShadow: [BoxShadow(
-                                    color: Colors.black
-                                        .withOpacity(0.05),
-                                    blurRadius: 10)],
+                                BorderRadius
+                                    .circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors
+                                          .black
+                                          .withOpacity(
+                                          0.05),
+                                      blurRadius: 10)
+                                ],
                               ),
                               child: Column(
                                 children: [
@@ -194,16 +216,17 @@ class _JobListingsScreenState
                                     padding:
                                     const EdgeInsets
                                         .all(18),
-                                    decoration: BoxDecoration(
+                                    decoration:
+                                    BoxDecoration(
                                       color: color,
                                       borderRadius:
                                       const BorderRadius
                                           .only(
-                                        topLeft:
-                                        Radius.circular(
+                                        topLeft: Radius
+                                            .circular(
                                             16),
-                                        topRight:
-                                        Radius.circular(
+                                        topRight: Radius
+                                            .circular(
                                             16),
                                       ),
                                     ),
@@ -212,7 +235,8 @@ class _JobListingsScreenState
                                         Container(
                                           padding:
                                           const EdgeInsets
-                                              .all(10),
+                                              .all(
+                                              10),
                                           decoration:
                                           BoxDecoration(
                                             color: Colors
@@ -229,7 +253,8 @@ class _JobListingsScreenState
                                                   .work_outline,
                                               color: Colors
                                                   .white,
-                                              size: 20),
+                                              size:
+                                              20),
                                         ),
                                         const SizedBox(
                                             width: 14),
@@ -239,58 +264,16 @@ class _JobListingsScreenState
                                             CrossAxisAlignment
                                                 .start,
                                             children: [
-                                              Row(
-                                                children: [
-                                                  Expanded(
-                                                    child:
-                                                    Text(
-                                                      job['title']
-                                                      as String,
-                                                      style: const TextStyle(
-                                                          color: Colors
-                                                              .white,
-                                                          fontSize:
-                                                          16,
-                                                          fontWeight:
-                                                          FontWeight.bold),
-                                                    ),
-                                                  ),
-                                                  // Show LIVE or DEMO tag
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal:
-                                                        8,
-                                                        vertical:
-                                                        3),
-                                                    decoration:
-                                                    BoxDecoration(
-                                                      color: Colors
-                                                          .white
-                                                          .withOpacity(
-                                                          0.2),
-                                                      borderRadius:
-                                                      BorderRadius
-                                                          .circular(
-                                                          10),
-                                                    ),
-                                                    child: Text(
-                                                      isDemo
-                                                          ? 'DEMO'
-                                                          : 'LIVE',
-                                                      style:
-                                                      const TextStyle(
-                                                        color: Colors
-                                                            .white,
-                                                        fontSize:
-                                                        9,
-                                                        fontWeight:
-                                                        FontWeight
-                                                            .bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
+                                              Text(
+                                                job['title']
+                                                as String,
+                                                style: const TextStyle(
+                                                    color: Colors
+                                                        .white,
+                                                    fontSize:
+                                                    16,
+                                                    fontWeight:
+                                                    FontWeight.bold),
                                               ),
                                               Text(
                                                 '${job['positions']} position(s) open',
@@ -308,8 +291,8 @@ class _JobListingsScreenState
                                         const Icon(
                                             Icons
                                                 .arrow_forward_ios_rounded,
-                                            color:
-                                            Colors.white,
+                                            color: Colors
+                                                .white,
                                             size: 16),
                                       ],
                                     ),
@@ -332,9 +315,11 @@ class _JobListingsScreenState
                                                     .schedule_rounded,
                                                 color: Color(
                                                     0xFF7986CB),
-                                                size: 16),
+                                                size:
+                                                16),
                                             const SizedBox(
-                                                width: 6),
+                                                width:
+                                                6),
                                             Text(
                                               job['experience']
                                               as String? ??
@@ -351,7 +336,8 @@ class _JobListingsScreenState
                                             height: 12),
                                         Wrap(
                                           spacing: 8,
-                                          runSpacing: 6,
+                                          runSpacing:
+                                          6,
                                           children: skills
                                               .map((s) =>
                                               Container(
@@ -377,12 +363,9 @@ class _JobListingsScreenState
                                                 Text(
                                                   s,
                                                   style: TextStyle(
-                                                      color:
-                                                      color,
-                                                      fontSize:
-                                                      12,
-                                                      fontWeight:
-                                                      FontWeight.w500),
+                                                      color: color,
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w500),
                                                 ),
                                               ))
                                               .toList(),
@@ -406,4 +389,24 @@ class _JobListingsScreenState
       ),
     );
   }
+
+  Widget _emptyState() => const Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.work_off_outlined,
+            size: 56, color: Colors.grey),
+        SizedBox(height: 16),
+        Text('No jobs found',
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey)),
+        SizedBox(height: 8),
+        Text('Check back later for new openings',
+            style: TextStyle(
+                fontSize: 13, color: Colors.grey)),
+      ],
+    ),
+  );
 }

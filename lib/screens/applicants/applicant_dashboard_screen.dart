@@ -7,6 +7,10 @@ import 'job_listings_screen.dart';
 import 'my_applicant_screen.dart';
 import 'profile_setup_screen.dart';
 import 'profile_screen.dart';
+import '../../services/job_service.dart';
+import '../../services/application_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class ApplicantDashboardScreen extends StatefulWidget {
   const ApplicantDashboardScreen({super.key});
@@ -258,8 +262,8 @@ class _ApplicantDashboardScreenState
               _journeyStep(
                 icon: Icons.upload_file_rounded,
                 title: 'Upload CV',
-                subtitle: currentApplicant.skills.isNotEmpty 
-                    ? 'CV parsed successfully' 
+                subtitle: currentApplicant.skills.isNotEmpty
+                    ? 'CV parsed successfully'
                     : 'Get matched better with a CV',
                 color: const Color(0xFF3949AB),
                 done: currentApplicant.skills.isNotEmpty,
