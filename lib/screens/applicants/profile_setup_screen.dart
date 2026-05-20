@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/cv_parser_service.dart';
+import '../../services/auth_service.dart';
+import '../../services/applicant_profile_cache.dart';
 import '../../models/applicant_model.dart';
 import '../../models/generated_profile.dart';
 import 'profile_screen.dart';
@@ -15,6 +17,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool _parsing = false;
   GeneratedProfile? _profile;
 
+  @override
+  void initState() {
+    super.initState();
+    _restoreCvUi();
+  }
+
+  Future<void> _restoreCvUi() async {
+    final uid = AuthService.currentUid;
+    if (uid == null) return;
+    final gp =
+        await ApplicantProfileCache.loadGeneratedProfileSnapshot(uid);
+    if (mounted && gp != null) {
+      setState(() => _profile = gp);
+    }
+  }
+
   void _pickCV() async {
     setState(() => _parsing = true);
     final profile = await CVParserService.pickAndParse();
@@ -28,7 +46,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       currentApplicant.name = profile.fullName;
       if (profile.email.isNotEmpty) currentApplicant.email = profile.email;
       currentApplicant.skills = profile.skills;
-      
+      if (profile.experience.isNotEmpty) {
+        currentApplicant.experience = profile.experience.first.toString();
+      }
+      final uid = AuthService.currentUid;
+      if (uid != null) {
+        await ApplicantProfileCache.save(
+          uid,
+          currentApplicant,
+          cvSnapshot: profile,
+        );
+      }
+
       _showSnack('CV Parsed Successfully!', isError: false);
     } else {
       _showSnack('Failed to parse CV or cancelled.', isError: true);

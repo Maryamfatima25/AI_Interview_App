@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/applicant_model.dart';
 import '../../data/applicant_store.dart';
+import '../../services/auth_service.dart';
+import '../../services/applicant_profile_cache.dart';
 import 'ai_interview_screen.dart';
 
 class ApplyFormScreen extends StatefulWidget {
@@ -77,6 +79,7 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
     currentApplicant.email = _emailController.text.trim();
     currentApplicant.experience = _experience;
     currentApplicant.appliedJobTitle = widget.job['title'] as String;
+    currentApplicant.skills = List<String>.from(_selectedSkills);
 
     // Add to submitted list
     submittedApplicants.add(ApplicantModel(
@@ -91,6 +94,11 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
     ));
     
     await saveApplicantsToFile();
+
+    final uid = AuthService.currentUid;
+    if (uid != null) {
+      await ApplicantProfileCache.save(uid, currentApplicant);
+    }
 
     if (mounted) {
       Navigator.pushReplacement(

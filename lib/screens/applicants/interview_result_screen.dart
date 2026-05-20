@@ -3,6 +3,8 @@ import '../../models/applicant_model.dart';
 import 'applicant_dashboard_screen.dart';
 // ADD this line alongside existing imports
 import '../../data/applicant_store.dart';
+import '../../services/applicant_profile_cache.dart';
+import '../../services/auth_service.dart';
 
 class InterviewResultScreen extends StatefulWidget {
   const InterviewResultScreen({super.key});
@@ -26,6 +28,10 @@ class _InterviewResultScreenState extends State<InterviewResultScreen> {
       submittedApplicants.last.interviewScore = score;
       submittedApplicants.last.aiVerdict = currentApplicant.aiVerdict;
       await saveApplicantsToFile();
+    }
+    final uid = AuthService.currentUid;
+    if (uid != null) {
+      await ApplicantProfileCache.save(uid, currentApplicant);
     }
   }
 

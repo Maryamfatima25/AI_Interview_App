@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/job_store.dart';
 import '../../services/job_service.dart';
 import 'job_detail_screen.dart';
 
@@ -73,36 +74,48 @@ class _JobListingsScreenState
             ),
           ),
 
-          // ── Live job list from Firestore ─────────────
+          // ── Local recruiter posts + demo jobs + Firestore ─────────────
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
               stream: JobService.getJobsStream(),
               builder: (context, snapshot) {
 
-                // Loading state
+                // Recruiter-created jobs live in [postedJobs] + dummy demos;
+                // Firestore may also list jobs. Merge so applicants see everything.
+                final remoteJobs = snapshot.hasError
+                    ? <Map<String, dynamic>>[]
+                    : (snapshot.data ?? <Map<String, dynamic>>[]);
+                final allJobs =
+                    mergeJobsForApplicantListing(remoteJobs);
+
+                // Loading: only spin if we have nothing local to show yet
                 if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
+                        ConnectionState.waiting &&
+                    allJobs.isEmpty) {
                   return const Center(
                     child: CircularProgressIndicator(
                         color: Color(0xFF3949AB)),
                   );
                 }
 
-                // Error state
-                if (snapshot.hasError) {
+                // Error: still show locally posted + demo jobs if any
+                if (snapshot.hasError && allJobs.isEmpty) {
                   return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: const TextStyle(
-                          color: Colors.red),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: Colors.red),
+                      ),
                     ),
                   );
                 }
 
                 // Filter by search
-                final allJobs = snapshot.data ?? [];
                 final jobs = allJobs.where((j) {
-                  final title = (j['title'] as String)
+                  final title = (j['title'] ?? '').toString()
                       .toLowerCase();
                   return title.contains(
                       _search.toLowerCase());

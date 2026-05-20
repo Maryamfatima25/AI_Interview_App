@@ -4,13 +4,11 @@ import '../../models/applicant_model.dart';
 import '../../data/job_store.dart';
 import '../../data/applicant_store.dart';
 import '../../services/auth_service.dart';
+import '../../services/applicant_profile_cache.dart';
 import 'job_listings_screen.dart';
 import 'my_applicant_screen.dart';
 import 'profile_setup_screen.dart';
 import 'profile_screen.dart';
-import '../../services/job_service.dart';
-import '../../services/application_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 
 class ApplicantDashboardScreen extends StatefulWidget {
@@ -23,6 +21,31 @@ class ApplicantDashboardScreen extends StatefulWidget {
 
 class _ApplicantDashboardScreenState
     extends State<ApplicantDashboardScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    _reloadLocalProfile();
+  }
+
+  Future<void> _reloadLocalProfile() async {
+    final uid = AuthService.currentUid;
+    if (uid == null) return;
+    await ApplicantProfileCache.loadIntoCurrentApplicant(uid);
+    final email = AuthService.currentEmail;
+    final name = AuthService.currentName;
+    if (currentApplicant.email.isEmpty &&
+        email != null &&
+        email.isNotEmpty) {
+      currentApplicant.email = email;
+    }
+    if (currentApplicant.name.isEmpty && name.isNotEmpty) {
+      currentApplicant.name = name;
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -49,8 +72,12 @@ class _ApplicantDashboardScreenState
   }
 
   Future<void> _logout() async {
-    currentApplicant = ApplicantModel();
+    final uid = AuthService.currentUid;
+    if (uid != null) {
+      await ApplicantProfileCache.save(uid, currentApplicant);
+    }
     await AuthService.signOut();
+    currentApplicant = ApplicantModel();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,

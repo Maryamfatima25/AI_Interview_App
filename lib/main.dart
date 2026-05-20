@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'models/applicant_model.dart';
 import 'services/auth_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/applicants/applicant_dashboard_screen.dart';
 import 'screens/recruiter/dashboard_screen.dart';
 import 'data/applicant_store.dart';
 import 'data/job_store.dart';
+import 'services/applicant_profile_cache.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -25,9 +25,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'AI Interview App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3949AB),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3949AB)),
         useMaterial3: true,
         appBarTheme: const AppBarTheme(
           centerTitle: true,
@@ -81,10 +79,7 @@ class _SplashRouterState extends State<SplashRouter> {
 
   Future<void> _checkLogin() async {
     // Load local demo persistence (SharedPreferences) before routing.
-    await Future.wait([
-      loadApplicantsFromFile(),
-      loadJobsFromFile(),
-    ]);
+    await Future.wait([loadApplicantsFromFile(), loadJobsFromFile()]);
 
     final user = await AuthService.getLoggedInUser();
 
@@ -94,8 +89,7 @@ class _SplashRouterState extends State<SplashRouter> {
       // Not logged in → show login
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-            builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
       return;
     }
@@ -104,15 +98,25 @@ class _SplashRouterState extends State<SplashRouter> {
     if (user['role'] == 'recruiter') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-            builder: (_) => const DashboardScreen()),
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
       );
     } else {
+      final uid = user['uid'] as String?;
+      if (uid != null) {
+        await ApplicantProfileCache.loadIntoCurrentApplicant(uid);
+        if (currentApplicant.email.isEmpty &&
+            (user['email'] as String?)?.isNotEmpty == true) {
+          currentApplicant.email = user['email'] as String;
+        }
+        if (currentApplicant.name.isEmpty &&
+            (user['name'] as String?)?.isNotEmpty == true) {
+          currentApplicant.name = user['name'] as String;
+        }
+      }
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-            builder: (_) =>
-            const ApplicantDashboardScreen()),
+        MaterialPageRoute(builder: (_) => const ApplicantDashboardScreen()),
       );
     }
   }
@@ -126,19 +130,22 @@ class _SplashRouterState extends State<SplashRouter> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.work_history_rounded,
-                size: 64, color: Color(0xFF3949AB)),
-            SizedBox(height: 20),
-            CircularProgressIndicator(
+            Icon(
+              Icons.work_history_rounded,
+              size: 64,
               color: Color(0xFF3949AB),
-              strokeWidth: 2,
             ),
+            SizedBox(height: 20),
+            CircularProgressIndicator(color: Color(0xFF3949AB), strokeWidth: 2),
             SizedBox(height: 16),
-            Text('AI Interview App',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A237E))),
+            Text(
+              'AI Interview App',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A237E),
+              ),
+            ),
           ],
         ),
       ),

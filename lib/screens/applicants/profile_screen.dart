@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/applicant_model.dart';
+import '../../services/auth_service.dart';
+import '../../services/applicant_profile_cache.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,7 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _experienceController.text = currentApplicant.experience;
   }
 
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     setState(() {
       currentApplicant.name = _nameController.text.trim();
       currentApplicant.email = _emailController.text.trim();
@@ -34,7 +36,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .toList();
       currentApplicant.experience = _experienceController.text.trim();
     });
-    
+
+    final uid = AuthService.currentUid;
+    if (uid != null) {
+      await ApplicantProfileCache.save(uid, currentApplicant);
+    }
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Profile updated successfully!'), backgroundColor: Colors.green),
     );

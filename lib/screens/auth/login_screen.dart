@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../models/applicant_model.dart';
+import '../../services/applicant_profile_cache.dart';
 import '../../services/auth_service.dart';
 import '../applicants/applicant_dashboard_screen.dart';
 import '../recruiter/dashboard_screen.dart';
@@ -65,6 +67,19 @@ class _LoginScreenState extends State<LoginScreen> {
             (route) => false,
       );
     } else {
+      final uid = result['uid'] as String?;
+      if (uid != null) {
+        await ApplicantProfileCache.loadIntoCurrentApplicant(uid);
+        if (currentApplicant.email.isEmpty &&
+            (result['email'] as String?)?.isNotEmpty == true) {
+          currentApplicant.email = result['email'] as String;
+        }
+        if (currentApplicant.name.isEmpty &&
+            (result['name'] as String?)?.isNotEmpty == true) {
+          currentApplicant.name = result['name'] as String;
+        }
+      }
+      if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(

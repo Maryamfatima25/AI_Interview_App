@@ -4,10 +4,8 @@ import 'result_screen.dart';
 import 'applicants_screen.dart';
 import 'interview_screen.dart';
 import 'result_screen_with_scores.dart';
-import '../../models/applicant_model.dart';
 import 'jobs_screen.dart';
 import 'shortlist_screen.dart';
-import '../../data/job_store.dart';
 import 'package:ai_interview_app/screens/auth/login_screen.dart';
 import '../../services/auth_service.dart';
 
@@ -69,11 +67,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             .then((jobData) {
           if (!mounted) return;
           if (jobData != null) {
+            // [CreateJobScreen] already adds to [postedJobs] and calls [saveJobsToFile].
             setState(() => createdJob = jobData);
-            postedJobs.add(jobData);
-            saveJobsToFile();
           }
-
         });
         break;
       case 1:
@@ -124,7 +120,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _logout() async {
-    currentApplicant = ApplicantModel();
     await AuthService.signOut();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
