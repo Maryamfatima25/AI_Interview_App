@@ -5,6 +5,8 @@ import 'services/auth_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/applicants/applicant_dashboard_screen.dart';
 import 'screens/recruiter/dashboard_screen.dart';
+import 'data/applicant_store.dart';
+import 'data/job_store.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,6 +80,12 @@ class _SplashRouterState extends State<SplashRouter> {
   }
 
   Future<void> _checkLogin() async {
+    // Load local demo persistence (SharedPreferences) before routing.
+    await Future.wait([
+      loadApplicantsFromFile(),
+      loadJobsFromFile(),
+    ]);
+
     final user = await AuthService.getLoggedInUser();
 
     if (!mounted) return;

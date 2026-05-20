@@ -9,6 +9,7 @@ import 'jobs_screen.dart';
 import 'shortlist_screen.dart';
 import '../../data/job_store.dart';
 import 'package:ai_interview_app/screens/auth/login_screen.dart';
+import '../../services/auth_service.dart';
 
 
 class DashboardScreen extends StatefulWidget {
@@ -66,8 +67,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const CreateJobScreen()))
             .then((jobData) {
-          if (jobData != null) setState(() => createdJob = jobData);
-          postedJobs.add(jobData);
+          if (!mounted) return;
+          if (jobData != null) {
+            setState(() => createdJob = jobData);
+            postedJobs.add(jobData);
+            saveJobsToFile();
+          }
 
         });
         break;
@@ -75,6 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const ApplicantsScreen()))
             .then((shortlisted) {
+          if (!mounted) return;
           if (shortlisted != null) {
             Navigator.push(
                 context,
@@ -82,6 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     builder: (_) => InterviewScreen(
                         shortlistedCandidates: shortlisted)))
                 .then((scores) {
+              if (!mounted) return;
               if (scores != null && createdJob != null) {
                 Navigator.push(
                     context,
@@ -116,17 +123,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _showSnack(String msg, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      backgroundColor:
-      isError ? const Color(0xFFE53935) : const Color(0xFF43A047),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ));
-  }
-  void _logout() {
+  Future<void> _logout() async {
     currentApplicant = ApplicantModel();
+    await AuthService.signOut();
+    if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),

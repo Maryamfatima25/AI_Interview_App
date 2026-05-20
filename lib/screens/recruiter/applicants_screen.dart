@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/dummy_candidates.dart';
 import '../../data/dummy_jobs.dart';
 import '../../data/applicant_store.dart';
@@ -77,9 +78,11 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('👀 submittedApplicants count: ${submittedApplicants.length}'); // ADD
-    print('👀 _allMerged count: ${_allMerged.length}');                   // ADD
-    print('👀 _filteredApplicants count: ${_filteredApplicants.length}');
+    if (kDebugMode) {
+      debugPrint('👀 submittedApplicants count: ${submittedApplicants.length}');
+      debugPrint('👀 _allMerged count: ${_allMerged.length}');
+      debugPrint('👀 _filteredApplicants count: ${_filteredApplicants.length}');
+    }
     final applicants = _filteredApplicants;
     final newCount = applicants.where((a) => a['isNew'] == true).length;
 
@@ -330,15 +333,34 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(interviewScore.toStringAsFixed(1),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20)),
-                    Text('/ 10',
-                        style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 11)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            interviewScore.toStringAsFixed(1),
+                            style: TextStyle(
+                              color: _scoreColor(interviewScore),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const Text(
+                            '/ 10',
+                            style: TextStyle(
+                              color: Color(0xFF9E9E9E),
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ],

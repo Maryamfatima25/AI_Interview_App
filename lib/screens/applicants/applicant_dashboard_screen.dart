@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/applicant_model.dart';
 import '../../data/job_store.dart';
 import '../../data/applicant_store.dart';
+import '../../services/auth_service.dart';
 import 'job_listings_screen.dart';
 import 'my_applicant_screen.dart';
 import 'profile_setup_screen.dart';
@@ -47,8 +48,10 @@ class _ApplicantDashboardScreenState
     return 'Applicant';
   }
 
-  void _logout() {
+  Future<void> _logout() async {
     currentApplicant = ApplicantModel();
+    await AuthService.signOut();
+    if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),

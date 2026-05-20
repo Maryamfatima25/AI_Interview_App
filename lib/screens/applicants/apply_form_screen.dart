@@ -18,8 +18,12 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
   String _experience = '0-1 years';
   bool _loading = false;
 
-  final List<String> _experienceOptions = [
-    '0-1 years', '1-2 years', '2-3 years', '3-5 years', '5+ years'
+  final List<String> _experienceOptions = const [
+    '0-1 years',
+    '1-2 years',
+    '2-3 years',
+    '3-5 years',
+    '5+ years',
   ];
 
   @override
@@ -27,12 +31,8 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
     super.initState();
     _nameController.text = currentApplicant.name;
     _emailController.text = currentApplicant.email;
-    
-    // Ensure we start with some skills if available from CV
-    // In a real app, these would be the parsed skills from CVParserService
-    if (currentApplicant.skills.isNotEmpty) {
-       // Auto-select skills from CV that match the job for demo purposes
-       // but user will mostly use the dropdown
+    if (currentApplicant.experience.isNotEmpty) {
+      _experience = currentApplicant.experience;
     }
   }
 
@@ -156,6 +156,30 @@ class _ApplyFormScreenState extends State<ApplyFormScreen> {
             const SizedBox(height: 12),
             _field(_emailController, 'Email', Icons.email),
             
+            const SizedBox(height: 24),
+            _sectionTitle('Experience'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  value: _experience,
+                  items: _experienceOptions
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
+                  onChanged: (val) {
+                    if (val == null) return;
+                    setState(() => _experience = val);
+                  },
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
             _sectionTitle('CV Skill Selection'),
             const Text('Select skills from your CV that match the job requirements:', 

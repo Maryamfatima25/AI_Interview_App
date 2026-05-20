@@ -4,8 +4,30 @@ import 'applicant_dashboard_screen.dart';
 // ADD this line alongside existing imports
 import '../../data/applicant_store.dart';
 
-class InterviewResultScreen extends StatelessWidget {
+class InterviewResultScreen extends StatefulWidget {
   const InterviewResultScreen({super.key});
+
+  @override
+  State<InterviewResultScreen> createState() => _InterviewResultScreenState();
+}
+
+class _InterviewResultScreenState extends State<InterviewResultScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _persistResults();
+  }
+
+  Future<void> _persistResults() async {
+    final score = currentApplicant.interviewScore;
+
+    // Update the last submitted applicant's score so recruiter sees it
+    if (submittedApplicants.isNotEmpty) {
+      submittedApplicants.last.interviewScore = score;
+      submittedApplicants.last.aiVerdict = currentApplicant.aiVerdict;
+      await saveApplicantsToFile();
+    }
+  }
 
   Color _scoreColor(double score) {
     if (score >= 8) return const Color(0xFF2E7D32);
@@ -31,13 +53,6 @@ class InterviewResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final score = currentApplicant.interviewScore;
-    // Update the last submitted applicant's score so recruiter sees it
-    if (submittedApplicants.isNotEmpty) {
-      submittedApplicants.last.interviewScore = score;
-      submittedApplicants.last.aiVerdict = currentApplicant.aiVerdict;
-      saveApplicantsToFile();
-    }
-
     final color = _scoreColor(score);
 
     return Scaffold(
@@ -61,6 +76,8 @@ class InterviewResultScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(_scoreIcon(score), color: color, size: 28),
+                    const SizedBox(height: 6),
                     Text(
                       score.toStringAsFixed(1),
                       style: TextStyle(
