@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "1051740998709",
+    "firebase_url": "https://interviewapp-a7df2-default-rtdb.firebaseio.com",
+    "project_id": "interviewapp-a7df2",
+    "storage_bucket": "interviewapp-a7df2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051740998709:android:e46d5a8120a58107a9357c",
+        "android_client_info": {
+          "package_name": "com.company.Ai_Hiring_Interview"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCx312yFqpVr6ri4b0TzdYqchEqG5iGBXg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051740998709:android:bd4e3f42ead754dfa9357c",
+        "android_client_info": {
+          "package_name": "com.example.ai_interview_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCx312yFqpVr6ri4b0TzdYqchEqG5iGBXg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
